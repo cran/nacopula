@@ -12,6 +12,7 @@
   another function programmatically.
 }
 \usage{
+%onacopula (family, nacStructure, envir=environment())
 onacopula (family, nacStructure)
 onacopulaL(family, nacList)
 }
@@ -29,6 +30,8 @@ onacopulaL(family, nacList)
     \code{comp} slot in \code{\linkS4class{nacopula}}s), and finally a
     (possibly empty) list of child copulas, each specified with in the
     \eqn{C(..)} notation themselves.}
+  % \item{envir}{the \code{\link{environment}} in which the
+  %   \code{nacStructure} \dQuote{formula} is evaluated.}
   \item{nacList}{a \code{\link{list}} of length 3 (or 2), with elements
     \enumerate{
       \item theta: \eqn{\vartheta}
@@ -41,12 +44,12 @@ onacopulaL(family, nacList)
 }
 \value{
   An outer nested Archimedean copula object, i.e., of class
-  \code{\linkS4class{"outer_nacopula"}}.
+  \code{"\linkS4class{outer_nacopula}"}.
 }
 \author{Martin Maechler}
 \seealso{
-  The class definitions \code{\linkS4class{"nacopula"}},
-  \code{\linkS4class{"outer_nacopula"}}, and \code{\linkS4class{"acopula"}}.
+  The class definitions \code{"\linkS4class{nacopula}"},
+  \code{"\linkS4class{outer_nacopula}"}, and \code{"\linkS4class{acopula}"}.
 }
 \references{
 	Hofert, M. (2010a),

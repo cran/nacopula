@@ -1,4 +1,4 @@
-\begin{thebibliography}{15}
+\begin{thebibliography}{16}
 \newcommand{\enquote}[1]{``#1''}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
@@ -87,6 +87,12 @@ Nolan JP (2009).
 \newblock \enquote{{Stable Distributions---Models for Heavy Tailed Data}.}
 \newblock
   \urlprefix\url{http://academic2.american.edu/~jpnolan/stable/chap1.pdf}.
+
+\bibitem[{{R Development Core Team}(2010)}]{r}
+{R Development Core Team} (2010).
+\newblock \emph{R: A Language and Environment for Statistical Computing}.
+\newblock R Foundation for Statistical Computing, Vienna, Austria.
+\newblock {ISBN} 3-900051-07-0, \urlprefix\url{http://www.R-project.org}.
 
 \bibitem[{Scarsini(1984)}]{scarsini1984}
 Scarsini M (1984).
