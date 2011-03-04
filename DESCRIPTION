@@ -1,8 +1,8 @@
 Package: nacopula
-Version: 0.4-3
-Date: 2010-08-18
-LastChanged: $LastChangedRevision: 236 $; $LastChangedDate: 2010-08-18
-        14:00:06 +0200 (Wed, 18. Aug 2010) $
+Version: 0.4-4
+Date: 2011-03-04
+LastChanged: $LastChangedRevision: 446 $; $LastChangedDate: 2011-03-01
+        18:19:21 +0100 (Tue, 01 Mar 2011) $
 Title: Nested Archimedean Copulas
 Description: An R package for nested Archimedean copulas, providing a
         procedure for computing function values, characteristics such
@@ -12,9 +12,9 @@ Author: Marius Hofert <marius.hofert@math.ethz.ch> and Martin Maechler
 Maintainer: Martin Maechler <maechler@stat.math.ethz.ch>
 Depends: methods, R (>= 2.9.1)
 Imports: gsl
-Suggests: lattice
+Suggests: lattice, sfsmisc
 License: GPL (>= 2)
 LazyData: yes
-Packaged: 2010-08-18 12:01:01 UTC; maechler
+Packaged: 2011-03-04 17:06:57 UTC; maechler
 Repository: CRAN
-Date/Publication: 2010-08-18 18:20:55
+Date/Publication: 2011-03-05 20:22:04
