@@ -16,6 +16,7 @@
 ####  'interval'	 class utilities
 ####  =========================== these are small and simple
 ###   use require(package= "Intervals")	 if you want serious interval "work"
+
 interval <- function(ch) {
     ## Purpose: "interval" object constructor from string  "[ a, b)", ...
     ## Author: Martin Maechler, Date: 16 Nov 2009
@@ -31,6 +32,20 @@ interval <- function(ch) {
     new("interval", as.numeric(c(substring(L, 2), substr(R, 1, nR-1))),
 	open = c(which(iL) != 2, which(iR) != 2))
 }
+
+##' Directly convert numeric (length 2) vector to closed interval
+##'
+##' @title Closed Interval from Numeric
+##' @param x numeric vector of length two
+##' @param open logical, of length one or two
+##' @return
+##' @author Martin Maechler
+num2interval <- function(x, open = FALSE) {
+    stopifnot(is.numeric(x), length(x) == 2,
+	      is.logical(open), 1 <= (lo <- length(open)), lo <= 2)
+    new("interval", as.numeric(x), open = rep(open, length.out=2)[1:2])
+}
+setAs("numeric", "interval", function(from) num2interval(from))
 
 setMethod("format", "interval",
 	  function(x, trim = TRUE, ...) {

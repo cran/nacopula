@@ -13,7 +13,7 @@
 ## You should have received a copy of the GNU General Public License along with
 ## this program; if not, see <http://www.gnu.org/licenses/>.
 
-##' Find a root
+##' @title (Safely) Finding a root
 ##' @param f function
 ##' @param interval interval
 ##' @param ...
@@ -29,7 +29,7 @@
 safeUroot <-
     function(f, interval, ...,
 	     lower = min(interval), upper = max(interval),
-	     f.lower = f(lower), f.upper = f(upper),
+	     f.lower = f(lower, ...), f.upper = f(upper, ...),
 	     Sig = NULL, check.conv = FALSE,
 	     tol = .Machine$double.eps^0.25, maxiter = 1000, trace = 0)
 {

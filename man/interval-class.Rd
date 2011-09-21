@@ -11,15 +11,15 @@
 
 \title{Class "interval" of simple Intervals}
 \description{
-  The S4 \code{\link{class}}) \code{"interval"} is a simple class for numeric
-  interval.
+  The S4 \code{\link{class}} \code{"interval"} is a simple class for numeric
+  intervals.
 
-  \code{"maybeInterval"} is a simple class union (see
+  \code{"maybeInterval"} is a class union (see
   \code{\link{setClassUnion}}) of \code{"interval"} and \code{"NULL"}.
 }
 \section{Objects from the Class}{
   Objects can be created by calls of the form \code{new("interval", ...)},
-  but typically rather via \code{\link{interval}()}.
+  but typically they are built via \code{\link{interval}()}.
 }
 \section{Slots}{
   \describe{
@@ -47,7 +47,7 @@
 }
 \note{
   There are more sophisticated interval classes, functions and methods,
-  notably in package \pkg{Intervals}. We only use this as a simple
+  notably in package \pkg{Intervals}.  We only use this as a simple
   interface in order to specify our copula functions consistently.
 }
 \author{Martin Maechler}

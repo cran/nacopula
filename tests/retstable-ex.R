@@ -18,6 +18,9 @@
 ####  --> Experiments with retstable*() versions
 
 require(nacopula)
+source(system.file("Rsource", "utils.R", package="nacopula"))
+##--> tryCatch.W.E(), canGet()
+
 
 ### --- ======      --------------------------#--
 ### --- Part I ---  Experiments with retstableR()
@@ -26,6 +29,8 @@ require(nacopula)
 ##' Zolotarev's function A(.) to the power 1-alpha,
 ##' i.e. sin(alpha*x)^alpha * sin((1-alpha)*x)^(1-alpha) / sin(x)
 ##' and other things
+##'
+##' @title Zolotarev's function A
 ##' @param ialpha parameter 1-alpha
 ##' @param x sequence of points in (0,pi)
 ##' @param col color
@@ -209,7 +214,7 @@ hist.breaks <- 200 # == function(nsim, <parameters>)
 saveFile2 <- "retstable_st2.rda"
 saveFile3 <- "retstable_CPU2.rda"
 
-if(file.exists(saveFile2) && file.exists(saveFile3)) {
+if(file.exists(saveFile3) && canGet(saveFile2)) {
     ## we have precomputed it ...
     load (saveFile2)
     load (saveFile3)
@@ -256,7 +261,7 @@ if(file.exists(saveFile2) && file.exists(saveFile3)) {
 						St..[,"LD"])$p.value
 	    }
 	    cat("\nProc.time(): ",format(proc.time()[1]),"; ",
-		round(100*count/(nalpha*nV0)), "% done\n\n",sep="")
+		round(format(100*count/(nalpha*nV0)), width=3), "% done\n\n",sep="")
 	    count <- count + 1
 	}
     }
@@ -273,6 +278,8 @@ if(getOption("width") < 100) options(width=100)
 
 
 ##' check the random variates via histogram plots
+##'
+##' @title Graphical tests via histogram plots
 ##' @param alphalab alpha label
 ##' @param V0lab V0 label
 ##' @param hlab h label
@@ -358,7 +365,7 @@ if(FALSE) { # hmm, not sensical yet
 ## x-range  in log-scale and back-transformed
 x.r <- 10^(xLr <- par("usr")[1:2])
 (x. <- floor(xLr[1]):ceiling(xLr[2]))
-x. <- sort(outer(10^x., c(1,2,5))); x. <- x.[(10^xLr[1] <= x.) &
+x. <- sort(10^x. %*% t(c(1,2,5))); x. <- x.[(10^xLr[1] <= x.) &
                                              (x. <= 10^xLr[2])]
 x.
 axis(1, at = log10(x.), label = x.)
@@ -386,6 +393,8 @@ rm(CPUr)# (so we know that dCPU is used below)
 plot  (CPUr ~ I(h^alpha * V0), data = dCPU); abline(h=1, col="tomato")
 
 ##' sophisticated plot of CPU times
+##'
+##' @title CPU times plot
 ##' @param log scale
 ##' @param do.h.eq.1 h == 1
 ##' @param main title

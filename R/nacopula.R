@@ -16,25 +16,79 @@
 #### Implementation of function evaluations and random number generation for
 #### nested Archimedean copulas
 
-##' Returns the copula value at a certain vector u
+##' Returns the copula density at u
+##'
+##' @title Density of nested Archimedean copulas
+##' @param x nacopula
+##' @param u argument of the copula x (can be a matrix)
+##' @param log if TRUE the log-density is evaluated
+##' @param ... further arguments passed to the copula specific 'dacopula' function;
+##'   typically  'n.MC' (Monte Carlo size), but potentially more
+##' @author Marius Hofert and Martin Maechler
+dnacopula <- function(x, u, log=FALSE, ...) {
+    stopifnot(is(x, "outer_nacopula"))
+    if(length(x@childCops))
+	stop("currently, only Archimedean copulas are provided")
+    if(!is.matrix(u)) u <- rbind(u)
+    if((d <- ncol(u)) < 2) stop("u should be at least bivariate")
+    x@copula@dacopula(u, x@copula@theta, log=log, ...)
+}
+
+##' Returns the copula density at u. Generic algorithm
+##'
+##' @title Density of nested Archimedean copulas (generic form)
 ##' @param x nacopula
 ##' @param u argument of the copula x
-##' @return x(u)
+##' @param n.MC if > 0 a Monte Carlo approach is applied with sample size equal
+##'        to n.MC; otherwise the exact formula is used
+##' @param log if TRUE the log-density is evaluated
+##' @author Marius Hofert
+dnacopulag <- function(x, u, n.MC=0, log = FALSE) {
+    stopifnot(is(x, "outer_nacopula"), 0 <= u, u <= 1)
+    if(length(x@childCops))
+        stop("currently, only Archimedean copulas are provided")
+    if(!is.matrix(u)) u <- rbind(u)
+    if((d <- ncol(u)) < 2) stop("u should be at least bivariate")
+    acop <- x@copula
+    th <- acop@theta
+    res <- rep(NaN,n <- nrow(u)) # density not defined on the margins
+    n01 <- apply(u,1,function(x) all(0 < x, x < 1)) # indices for which density has to be evaluated
+    if(any(n01)) {
+        u. <- u[n01,, drop=FALSE]
+	psiI <- acop@psiInv(u.,th)
+	psiID <- acop@psiInvD1abs(u.,th)
+        res[n01] <- acop@psiDabs(rowSums(psiI),theta = th,degree = d, n.MC = n.MC, log = log)
+        res[n01] <- if(log) res[n01] + rowSums(log(psiID)) else res[n01] * apply(psiID,1,prod)
+    }
+    res
+}
+
+##' Returns the copula value at u
+##'
+##' @title Evaluation of nested Archimedean copula
+##' @param x nacopula
+##' @param u argument of the copula x (can be a matrix)
+##' @return f_x(u)
 ##' @author Marius Hofert, Martin Maechler
-## FIXME: maybe make this applicable to a matrix of u's?
 pnacopula <- function(x,u) {
-    stopifnot(is.numeric(u), 0 <= u, u <= 1,
-	      length(u) >= dim(x))	# can be larger
+    if(!is.matrix(u)) u <- rbind(u)
+    stopifnot(ncol(u) >= dim(x)) # will be larger for children
     C <- x@copula
     th <- C@theta
-    ## use u[j] for the direct components 'comp':
-    C@psi(sum(unlist(lapply(u[x@comp], C@psiInv, theta=th)),
-	      C@psiInv(unlist(lapply(x@childCops, pnacopula, u = u)),
-		       theta=th)),
-	  theta=th)
+    res <- C@psi(rowSums(## use u[,j, drop=FALSE] for the direct components 'comp':
+                         cbind(C@psiInv(u[,x@comp, drop=FALSE], theta=th),
+                               ## and recurse down for the children:
+                               C@psiInv(unlist(lapply(x@childCops, pnacopula, u=u)), theta=th))),
+                 theta=th)
+    ## if u is a vector, res contains a names attribute, which we have to remove
+    ## otherwise all.equal() in nac-experi.R fails
+    names(res) <- NULL
+    res
 }
 
 ##' Compute the probability P[l < U <= u]  where U ~ copula x.
+##'
+##' @title Computing probabilities under nested Archimedean dependence
 ##' @param x outer nested archimedean copula
 ##' @param l d-vector of lower "integration" limits
 ##' @param u d-vector of upper "integration" limits
@@ -46,8 +100,6 @@ setGeneric("prob", function(x, l, u) standardGeneric("prob"))
 setMethod("prob", signature(x ="outer_nacopula"),
           function(x, l,u) {
               d <- dim(x)
-              ## TODO: maybe allow  l & u to be  k x d matrices
-              ##        --> return vector of probabilities of length k
               stopifnot(is.numeric(l), is.numeric(u),
                         length(u) == d, d == length(l),
                         0 <= l, l <= u, u <= 1)
@@ -66,10 +118,12 @@ setMethod("prob", signature(x ="outer_nacopula"),
               ## Sign: the ("u","u",...,"u") case has +1; = c(2,2,...,2)
               Sign <- c(1,-1)[1L + (- rowSums(II)) %% 2]
               U <- array(cbind(l,u)[cbind(c(col(II)), c(II))], dim = dim(II))
-              sum(Sign * apply(U, 1, pnacopula, x=x))
+              sum(Sign * pnacopula(x, U))
           })
 
 ##' Returns (n x d)-matrix of random variates
+##'
+##' @title Random number generation for nested Archimedean copulas
 ##' @param n number of vectors of random variates to generate
 ##' @param x outer_nacopula
 ##' @return matrix of random variates
@@ -88,16 +142,18 @@ rnacopula <- function(n, x, ...)
     mat <- cbind(mat, do.call(cbind,lapply(childL, `[[`, "U")))
     ## get correct sorting order:
     j <- c(x@comp, unlist(lapply(childL, `[[`, "indCol")))
-    ## extra checks TODO: comment
+    ## extra check
     stopifnot(length(j) == ncol(mat))
-    m <- mat[,order(j)]			# permute data and return
-    ## extra checks TODO: comment
+    m <- mat[,order(j), drop=FALSE] # permute data and return
+    ## extra checks
     stopifnot(length(dm <- dim(m)) == 2, dm == dim(mat))
     m
 }
 
 ##' Returns a list with an (n x d)-matrix of random variates and a vector of
 ##' indices.
+##'
+##' @title Random number generation for children of nested Archimedean copulas
 ##' @param x nacopula
 ##' @param n number of vectors of random variates to generate
 ##' @param theta0 parameter theta0
@@ -121,7 +177,8 @@ rnchild <- function(x, theta0, V0,...)
     r <- matrix(rexp(n*dns), n, dns) # generate the non-sectorial part
     ## put pieces together: first own comp.s, then the children's :
     mat <- Cp@psi(r/V01, theta1) # transform
-    mat <- cbind(mat, do.call(cbind, lapply(childL, `[[`, "U")))
+    if(length(childL) && length(U <- lapply(childL, `[[`, "U")))
+	mat <- cbind(mat, do.call(cbind, U))
     ## get correct sorting order:
     j <- c(x@comp, unlist(lapply(childL, `[[`, "indCol")))
     list(U = mat, indCol = j) # get list and return
@@ -133,16 +190,16 @@ if(FALSE) { # evaluate the following into your R session if you need debugging:
     debug(rnchild)
 }
 
-##' Constructor for outer_nacopula
+##' @title Constructor for outer_nacopula
 ##' @param family either character string (short or longer form of
 ##'	 copula family name) or an "acopula" family object
 ##' @param nacStructure a "formula" of the form C(th, comp, list(C(..), C(..)))
 ##' @return a valid outer_nacopula object
 ##' @author Martin Maechler
 onacopula <- function(family, nacStructure) {
-## , envir = ... , enclos=parent.frame() or
-## , envir=environment()
-##
+    ## , envir = ... , enclos=parent.frame() or
+    ## , envir=environment()
+    ##
 ### FIXME: base this on  onacopulaL() -- replacing nacStructure by nacList
 ### ----- : (1) replacing  C() with list() *AND* by
 ###         (2) wrapping the 3rd argument with list(.) if it's not already
@@ -172,7 +229,7 @@ onacopula <- function(family, nacStructure) {
         ##     b <- eval(b, pframe) ; stopifnot(is.numeric(b))
         ## }
 	else stopifnot(is.list(c))
-	stopifnot(is.numeric(a), length(a) == 1, is.numeric(b))
+	stopifnot(is.numeric(a) || is.na(a), length(a) == 1, is.numeric(b))
 	if(any(sapply(c, class) != "nacopula"))
 	    stop("third entry of 'nacStructure' must be NULL or list of 'C(..)' terms")
 	new(cClass, copula = setTheta(COP, a),

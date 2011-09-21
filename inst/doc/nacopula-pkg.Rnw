@@ -2,12 +2,13 @@
 %% NOTA BENE: More definitions --> further down
 %%%%%%%%%%%%
 %
-%% almost as usual
 \author{Marius Hofert\thanks{The author (Willis Research Fellow) thanks Willis Re
     for financial support while this work was completed.} \\ETH Zurich
  \And
  Martin M\"achler \\ ETH Zurich}
 \title{Nested Archimedean Copulas Meet \R --- The \pkg{nacopula} Package}
+\def\mythanks{a version of this paper, for \pkg{nacopula} 0.4\_4, has been published
+    in JSS, \url{http://www.jstatsoft.org/v39/i09}.}
 %% for pretty printing and a nice hypersummary also set:
 \Plainauthor{Marius Hofert, Martin M\"achler} %% comma-separated
 \Plaintitle{Nested Archimedean Copulas Meet R---The nacopula Package} %% without formatting
@@ -16,7 +17,7 @@
 %\VignetteIndexEntry{nacopula}
 %\VignetteDepends{nacopula}
 %\VignetteDepends{lattice}
-\SweaveOpts{engine=R,eps=FALSE,pdf=TRUE,width=7,height=4,strip.white=TRUE,keep.source=TRUE}
+\SweaveOpts{engine=R,eps=FALSE,pdf=TRUE,width=7,height=4,strip.white=true,keep.source=TRUE}
 
 %% an abstract and keywords
 \Abstract{
@@ -88,10 +89,10 @@
 \usepackage{enumitem}%for automatic numbering of new enumerate environments
 \usepackage[
   format=hang,
-  %NOT for JSS: labelsep=space,
+  % NOT for JSS: labelsep=space,
   justification=justified,
-  singlelinecheck=false,
-  %NOT for JSS: labelfont=bf
+  singlelinecheck=false%,
+  % NOT for JSS: labelfont=bf
 ]{caption}%for captions
 \usepackage{tikz}%sophisticated graphics package
 \usepackage{tabularx}%for special table environment (tabularx-table)
@@ -148,6 +149,10 @@
 }
 \makeatother
 
+\long\def\symbolfootnote[#1]#2{\begingroup%
+  \def\thefootnote{\fnsymbol{footnote}}\footnote[#1]{#2}\endgroup}
+%% and \symbolfootnote[1]{footnote} to get an * , 2: dagger, 3: double dagger...
+%
 \newcommand*{\R}{\proglang{R}}%{\textsf{R}}
 %% Marius' commands
 \newcommand*{\eps}{\varepsilon}
@@ -204,12 +209,17 @@
 %% Note: If there is markup in \(sub)section, then it has to be escape as above.
 %% Note: These are explained in '?RweaveLatex' :
 <<preliminaries, echo=FALSE, results=hide>>=
-options(width=70, useFancyQuotes = FALSE, prompt="R> ", continue="+  ")
-Sys.setlocale("LC_MESSAGES","C")
+op.orig <-
+options(width = 70,
+        ## SweaveHooks= list(fig=function() par(mar=c(5.1, 4.1, 1.1, 2.1))),
+        useFancyQuotes = FALSE, prompt="R> ", continue="+  ")
+Sys.setenv(LANGUAGE = "en")
+if(.Platform$OS.type != "windows")
+  Sys.setlocale("LC_MESSAGES","C")
 if(Sys.getenv("USER") == "maechler")# take CRAN's version, not development one:
-    library(nacopula, lib="~/R/Pkgs/nacopula_CRAN_lib")
+    require("nacopula", lib="~/R/Pkgs/CRAN_lib")
 @
-\section{Introduction}
+\section[Introduction]{Introduction \small~\footnote{\mythanks}}
 A \textit{copula} is a multivariate distribution function with standard
 uniform univariate margins. Standard references for an introduction
 are \citet{joe1997} or \citet{nelsen2007}.
@@ -1150,6 +1160,8 @@ my.strsplit(  packageDescription("nacopula")[["LastChanged"]]  )
 @
 <<nacopula-version,echo=FALSE>>=
 cat(strsplit(packageDescription("nacopula")[["LastChanged"]], "; *")[[1]],"", sep="\n")
+<<finalizing, echo=FALSE>>=
+options(op.orig)
 @
 
 \section{Conclusion}

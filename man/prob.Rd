@@ -13,15 +13,16 @@
 prob(x, l, u)
 }
 \arguments{
-  \item{x}{a (nested) Archimedean copula of dimension \eqn{d}, i.e., an object of class
-    \code{\linkS4class{nacopula}}, typically constructed with \code{\link{onacopula}(..)}.}
+  \item{x}{(nested) Archimedean copula of dimension \eqn{d}, that is, an object
+    of class \code{\linkS4class{nacopula}}, typically constructed with
+    \code{\link{onacopula}(..)}.}
   \item{l, u}{\eqn{d}-dimensional, \code{\link{numeric}}, lower and
     upper hypercube boundaries, respectively, satisfying
     \eqn{0 \le l_i \le u_i \le 1}{0 <= l_i <= u_i <= 1},
     for \eqn{i\in{1,\dots,d}}{i in {1,...,d}}.}
 }
 \value{A \code{\link{numeric}} in \eqn{[0,1]} which is the probability
-  \eqn{P(l_i<U_i\le u_i]}{P(l[i] < U[i] <= u[i])}.
+  \eqn{P(l_i< U_i \le u_i)}{P(l[i] < U[i] <= u[i])}.
 }
 \author{Marius Hofert, Martin Maechler}
 \seealso{
@@ -44,5 +45,6 @@ l <- c(.7,.8,.6)
 u <- c(1,1,1)
 prob(C3, l, u)
 }
+\keyword{distribution}
 \keyword{methods}
 

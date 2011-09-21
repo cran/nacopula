@@ -17,10 +17,11 @@
 
 ## This has advantage that arithmetic with scalars works "for free" already:
 setClass("interval", contains =  "numeric", # of length 2
-         representation(open  = "logical"),# of length 2
+	 representation(open  = "logical"),# of length 2
 	 validity = function(object) {
 	     if(length(rng <- object@.Data) != 2) "interval must be of length 2"
 	     else if(length(object@open) != 2) "'open' must be of length 2"
+	     else if(any(is.na(object@open))) "'open' may not be NA"
 	     else if(rng[2] < rng[1]) "'range[2]' must not be smaller than range[1]"
 	     else TRUE
 	 })
@@ -31,23 +32,29 @@ setClassUnion("maybeInterval", c("interval", "NULL"))
 ### for *any* dimension d
 setClass("acopula",
 	 representation(name = "character",
-                        psi = "function",    # of (t, theta) -- the generator
-                        psiInv = "function", # of (p, theta) -- psi_inverse: \psi^{-1}(p) = t
-                        theta = "numeric", # value of theta or  'NA'  (for unspecified)
-                        paraConstr = "function", # of (theta) ; constr(theta) |--> TRUE: "fulfilled"
-                        ## when theta is one-dimensional, specifying the interval is more convenient:
-                        paraInterval = "maybeInterval", # [.,.]  (.,.], etc ..
-                        V0 = "function",	# of (n,theta) -- RNGenerator
-                        tau= "function",	# of (theta)
-                        tauInv = "function",    # of (tau)
-                        lambdaL = "function",    # of (theta) lower bound  \lambda_l
-                        lambdaLInv = "function", # of (lambda) - Inverse of \lambda_l
-                        lambdaU = "function",    # of (theta)  - upper bound  \lambda_u
-                        lambdaUInv = "function", # of (lambda) - Inverse of \lambda_u
-
+                        psi = "function",         # of (t, theta) -- the generator
+                        psiInv = "function",      # of (u, theta, log=FALSE) -- (log-)psi_inverse: \psi^{-1}(u)=t
+			## when theta is one-dimensional, specifying the interval is more convenient:
+                        paraInterval = "maybeInterval", # [.,.]  (.,.], etc .. parameter interval
+                        psiDabs = "function",     # of (t, theta, degree=1, n.MC=0, log=FALSE) -- (-1)^d * the degree-th generator derivative
+                        theta = "numeric",        # value of theta or  'NA'  (for unspecified)
+                        paraConstr = "function",  # of (theta) ; constr(theta) |--> TRUE: "fulfilled"
+                        psiInvD1abs = "function", # of (t, theta, log=FALSE) -- computes the absolute value of the first derivative of psiInv
+                        dDiag = "function",       # of (u, theta, log=FALSE) -- compute the density of the diagonal
+                        dacopula = "function",    # of (u, theta, n.MC=0, log=FALSE) -- computes the (log-)density of the Archimedean copula with parameter theta at the vector/matrix u (n.MC > 0: apply Monte Carlo with sample size n.MC)
+                        score = "function",       # of (u, theta) -- computes the score function
+                        V0 = "function",	  # of (n,theta) -- RNGenerator
+			dV0 = "function",         # of (x,theta,log=FALSE) -- density of F=LS^{-1}[psi]
+                        tau = "function",	  # of (theta)
+                        tauInv = "function",      # of (tau)
+                        lambdaL = "function",     # of (theta) lower bound  \lambda_l
+                        lambdaLInv = "function",  # of (lambda) - Inverse of \lambda_l
+                        lambdaU = "function",     # of (theta)  - upper bound  \lambda_u
+                        lambdaUInv = "function",  # of (lambda) - Inverse of \lambda_u
                         ## Nesting properties if the child copulas are of the same family :
-                        nestConstr = "function", # of (th0, th1) ; TRUE <==> "fulfilled"
-                        V01= "function"	# of (V0,theta0,theta1)
+                        nestConstr = "function",  # of (th0, th1) ; TRUE <==> "fulfilled"
+                        V01= "function",	  # of (V0,theta0,theta1) -- RNGenerator
+			dV01= "function"           # of (x,(V0),theta0,theta1,log=FALSE) -- density *related to* F01=LS^{-1}[psi_0^{-1}(psi_1(t))] (see the specific families)
                         ),
          prototype = prototype(theta = NA_real_),
 	 validity = function(object) {
@@ -70,8 +77,8 @@ setClass("acopula",
 				 if(nArgs == 2) sprintf(", %g)", th) else ")",
 				 r0$message)
 		     else if(!identical(r0,
-                                        {n0 <- numeric(0)
-                                         if(nArgs == 2) f(n0, theta = th) else f(n0) }))
+                                    {n0 <- numeric(0)
+                                     if(nArgs == 2) f(n0, theta = th) else f(n0) }))
 			 sprintf("%s(NULL ..) is not the same as %s(num(0) ..)",
 				 sName, sName)
 		     else TRUE
@@ -81,12 +88,11 @@ setClass("acopula",
              if(!isTRUE(tt <- checkFun("psi", 2)))	return(tt)
              if(!isTRUE(tt <- checkFun("psiInv", 2)))	return(tt)
              if(!isTRUE(tt <- checkFun("tau", 1)))	return(tt)
-
              if(!isTRUE(tt <- checkFun("paraConstr", 1, chkVect=FALSE))) return(tt)
              if(!isTRUE(tt <- checkFun("nestConstr", 2, chkVect=FALSE))) return(tt)
 
              ## ...
-             ## ... (TODO)
+             ## ... TODO
 
              ## Check more :
 	     if (object@psi(0, theta= 1/2) != 1)
@@ -141,7 +147,7 @@ setClass("nacopula",
 	 representation(copula = "acopula",
                         comp = "integer", # from 1:d -- of length in [0,d]
                         childCops = "list" #of nacopulas, possibly empty
-                        ## TODO? nesting properties (V01,..) for specific mother-child relations
+                        ## nesting properties (V01,..) for specific mother-child relations could be added
                         ),
          validity = function(object) {
              if(length(d <- dim(object)) != 1 || !is.numeric(d) || d <= 0)
@@ -151,11 +157,11 @@ setClass("nacopula",
                  return("more components than the dimension")
 	     if(!all("nacopula" == sapply(object@childCops, class)))
                  return("All 'childCops' elements must be 'nacopula' objects")
-## FIXME: we need to recursively apply a "comp" function
+             ## FIXME: we need to recursively apply a "comp" function
 
              allC <- allComp(object)
              if(length(allC) != d)
-                 return("must have d coordinates (from 'comps' and child copulas)")
+                 return("must have d coordinates (from 'comp' and 'childCops')")
              ##
              TRUE
          })
@@ -172,7 +178,7 @@ setClass("outer_nacopula", contains = "nacopula",
              ic <- object@comp
              allC <- allComp(object)
              if(length(allC) != d)
-                 return("must have d coordinates (from 'comps' and child copulas)")
+                 return("must have d coordinates (from 'comp' and 'childCops')")
              if(!all(sort(allC) == 1:d))
                  return(paste("The implicit coordinates are not identical to 1:d; instead\n  ",
                               paste(allC, collapse=", ")))

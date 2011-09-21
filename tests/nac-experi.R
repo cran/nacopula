@@ -27,10 +27,12 @@ doPlots <- (Sys.getenv("USER") == "maechler")
 ## ==== 3d check functions =====================================================
 
 ##' correlation check function and run time measuring
+##'
+##' @title Check correlation matrix and measure run times of 3d fully nested Archimedean copulas
 ##' @param n number of variates to be drawn
 ##' @param th0 theta0
 ##' @param th1 theta1
-##' @param cop copula
+##' @param cop acopula
 ##' @return a list containing run times for V0 and V01 and Kendall's taus
 ##' @author Marius Hofert, Martin Maechler
 corCheck <- function(n, th0,th1, cop) {
@@ -61,9 +63,11 @@ corCheckout <- function(x, trCorr, famName = x$name) {
 }
 
 ##' Function implementing the chi^2 test
+##'
+##' @title The Chi-square test
 ##' @param n [integer] sample size
 ##' @param N [integer] number of replications
-##' @param cop nacopula to generate from
+##' @param cop outer_nacopula to generate from
 ##' @param nInt positive integer: the number of intervals used for each grid
 ##' dimension
 ##' @return an "chiSqChk_cop" object; just a list(...) and a print method
@@ -133,12 +137,12 @@ chiSq_check_cop <- function(n,N,cop,nInt, verbose = interactive()){
 print.chiSqChk_cop <- function(x, ...) {
     stopifnot(is.list(x), all(c("ks","T","CPU","n","N") %in% names(x)),
 	      is.numeric(pv <- x$ks[[2]]))
-    cat(sprintf("%s (3d)NAcopula (n=%d):\n -- %s (N=%d): %s\n -- ",
+    cat(sprintf("%s (3d)NAcopula (n=%d):\n  %s (N=%d): %s\n  ",
 		x$copName, x$n,
                 "P-value of the chi-square test", x$N, format.pval(pv)),
-        sprintf("Percentage fulfilling chi^2 rule of thumb: %4.1f\n -- ",
+        sprintf("Percentage fulfilling chi^2 rule of thumb: %4.1f\n",
                 x$percentrot),
-        sprintf("CPU (user) time needed = c(N,n; cop) = %8.1f [ms]\n",
+        sprintf("Time (user) needed = c(N,n; cop) = %8.1f [ms]\n",
 		1000 * x$CPU), sep="")
     if(pv < 0.05) {
 	if(pv < 0.01)
@@ -150,8 +154,8 @@ print.chiSqChk_cop <- function(x, ...) {
     invisible(x)
 }
 
-##' compute the probability to fall in a cube with lower point l and upper point
-##' u for d=3
+##' compute the probability to fall in a cube with
+##' lower point l and upper point u for d=3
 probin3dcube <- function(cop,l,u) {
     pnacopula(cop,u)+
         - pnacopula(cop,c(l[1],u[2],u[3]))+
@@ -285,7 +289,7 @@ stopifnot(all.equal(print(  prob(Joe3d,l,u)),
 
 ## generate output for the examples
 prt.stats <- function(c1,c2, rt) {
-    cat("Run time [ms] for generating", n,
+    cat("Time [ms] for generating", n,
         "vectors of variates:  ", round(1000*rt[1],1), "\n")
     prt.tau.diff(c1, c2) ; cat("\n")
 }
@@ -449,7 +453,7 @@ C9.true <- rbind(c(1. ,rep(0.2,8)),
 stopifnot(dim(rC9) == c(n, 9),
           max(abs(C9-C9.true)) < eps.tau)
 prt.stats(C9,C9.true,rt)
-if(doPlots && dev.interactive()) # "large"
+if(doPlots && dev.interactive(orNone=TRUE)) # "large"
     pairs(rC9, gap = .1, pch = 20, cex = 0.2, col = rgb(.2,.1,.7, alpha = .5),
           main = paste(n," vectors of a ",d,
           "-dimensional nested Clayton copula",sep = ""))

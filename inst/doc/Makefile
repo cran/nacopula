@@ -1,8 +1,8 @@
-###--- Makefile mainly from Douglas Bates
+###--- Makefile (adapted from pcalg & robustbase; origin from Douglas Bates)
 
 ## need to get 'texclean' command
 
-DRIVERS = nacopula-pkg
+DRIVERS = nacopula-pkg Frank-Rmpfr
 #R_LIB = /usr/local/lib/R
 R_LIB = /usr/local/app/R/current
 #R_PROG = R-devel
@@ -18,6 +18,15 @@ TPUTS = ${TEXINPUTS}:${R_LIB}/share/texmf//
 all: $(DRIVERS:=.pdf)
 	${MAKE} clean
 
+paper-etc: $(DRIVERS:=.zip)
+$(DRIVERS:=.zip): $(DRIVERS:=.Rnw) $(DRIVERS:=.pdf) $(DRIVERS:=.R) *.bib
+	zip $@ $^
+	ls -l $@ ; zipinfo $@
+
+paper-all.zip: $(DRIVERS:=.Rnw) $(DRIVERS:=.tex) $(DRIVERS:=.pdf) $(DRIVERS:=.R) *.bib $(wildcard $(DRIVERS)-*.pdf)
+	zip $@ $^
+	ls -l $@ ; zipinfo $@
+
 %.tex: %.Rnw
 	${R_PROG} CMD Sweave $<
 
@@ -26,6 +35,8 @@ all: $(DRIVERS:=.pdf)
 
 %.pdf : %.tex *.bib
 	TEXINPUTS=${TPUTS} texi2pdf $<
+	qpdf --stream-data=compress $@ temp$@
+	mv temp$@ $@
 
 %.dvi : %.tex *.bib
 	TEXINPUTS=${TPUTS} texi2dvi $<

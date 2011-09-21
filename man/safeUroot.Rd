@@ -4,18 +4,18 @@
 \usage{
 safeUroot(f, interval, \dots,
        lower = min(interval), upper = max(interval),
-       f.lower = f(lower), f.upper = f(upper),
+       f.lower = f(lower, \dots), f.upper = f(upper, \dots),
        Sig = NULL, check.conv = FALSE,
        tol = .Machine$double.eps^0.25, maxiter = 1000, trace = 0)
 }
 \description{
   \code{safeUroot()} as a \dQuote{safe} version of
-  \code{\link{uniroot}()} searches for a root (i.e., zero) of the
+  \code{\link{uniroot}()} searches for a root (that is, zero) of the
   function \code{f} with respect to its first argument.
 
-  \dQuote{Safety} is provided by a search for the correct \code{interval
-    = c(lower,upper)} in case \code{sign(f(x))} does not of the satisfy the
-  requirements at the interval end points, see the \sQuote{Details}
+  \dQuote{Safe} means searching for the correct \code{interval
+    = c(lower,upper)} if \code{sign(f(x))} does not satisfy the
+  requirements at the interval end points; see the \sQuote{Details}
   section.
 }
 \arguments{
@@ -27,15 +27,15 @@ safeUroot(f, interval, \dots,
   \item{f.lower, f.upper}{function value at \code{lower} or \code{upper}
     endpoint, respectively.}
   \item{Sig}{\emph{desired} sign of \code{f(upper)}, or \code{\link{NULL}}.}
-  \item{check.conv}{logical indicating if a convergence warning from the
+  \item{check.conv}{logical indicating whether a convergence warning of the
     underlying \code{\link{uniroot}} should be caught as an error.}
-  \item{tol}{the desired accuracy, i.e., convergence tolerance.}
+  \item{tol}{the desired accuracy, that is, convergence tolerance.}
   \item{maxiter}{maximal number of iterations}
   \item{trace}{number determining tracing}
 }
 \details{
   If it is \emph{known how} \eqn{f} changes sign at the root
-  \eqn{x_0}{x0}, i.e., if the function is increasing or decreasing there,
+  \eqn{x_0}{x0}, that is, if the function is increasing or decreasing there,
   \code{Sig} can be specified, typically as \eqn{S := \pm 1}{S:= +/- 1},
   to require \eqn{S = \mathrm{sign}(f(x_0 + \epsilon))}{S = sign(f(x0 + eps))}
   at the solution.  In that case, the search interval \eqn{[l,u]} must
@@ -51,11 +51,11 @@ safeUroot(f, interval, \dots,
   %% enlarged; in the other (usual) case, it is enlarged on both sides
   %% at the same time.
 }
-\author{Martin Maechler (from Martin's \R package \pkg{nor1mix}).
-}
 \value{
   A list with four components, \code{root}, \code{f.root}, \code{iter}
-  and \code{estim.prec}, see \code{\link{uniroot}}.
+  and \code{estim.prec}; see \code{\link{uniroot}}.
+}
+\author{Martin Maechler (from Martin's \R package \pkg{nor1mix}).
 }
 \seealso{
   \code{\link{uniroot}}.

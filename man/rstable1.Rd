@@ -8,16 +8,15 @@
   exponent \eqn{\alpha\in(0,2]}{alpha in (0,2]},
   skewness \eqn{\beta\in[-1,1]}{beta in [-1,1]},
   scale    \eqn{\gamma\in[0,\infty)}{gamma in [0,Inf)}, and
-  location \eqn{\delta\in\mathbf{R}}{delta in IR}, see Nolan (2010) for
-  the parameterization \eqn{k\in\{0,1\}}{k in {0,1}}. The case
-  \eqn{\gamma=0}{gamma = 0} is understood as the unit jumpat
-  \eqn{\delta}{delta}.
+  location \eqn{\delta\in\mathbf{R}}{delta in IR}; see Nolan (2010) for
+  the parameterization \eqn{k\in\{0,1\}}{k in {0,1}}.  The case
+  \eqn{\gamma=0} is understood as the unit jump at \eqn{\delta}.
 }
 \usage{
 rstable1(n, alpha, beta, gamma = 1, delta = 0, pm = 1)
 }
 \arguments{
-	 \item{n}{an \code{\link{integer}}, the number of observations to generate.}
+  \item{n}{an \code{\link{integer}}, the number of observations to generate.}
     \item{alpha}{characteristic exponent \eqn{\alpha\in(0,2]}{alpha in (0,2]}.}
     \item{beta}{skewness \eqn{\beta\in[-1,1]}{beta in [-1,1]}.}
     \item{gamma}{scale \eqn{\gamma\in[0,\infty)}{gamma in [0,Inf)}.}
@@ -30,19 +29,19 @@ rstable1(n, alpha, beta, gamma = 1, delta = 0, pm = 1)
 }
 \details{
   We use the approach of John Nolan for generating random variates of
-  stable distributions. The function \code{rstable1} provides two basic
+  stable distributions.  The function \code{rstable1} provides two basic
   parametrizations, by default,
 
   \code{pm = 1}, the so called \dQuote{S}, \dQuote{S1}, or \dQuote{1}
-  parameterization. This is the parameterization used by Samorodnitsky and
+  parameterization.  This is the parameterization used by Samorodnitsky and
   Taqqu (1994), and is a slight modification of Zolotarev's (A)
-  parameterization. It is the form with the most simple form of the
-  characteristic function, see Nolan (2010, p. 8).
+  parameterization.  It is the form with the most simple form of the
+  characteristic function; see Nolan (2010, p. 8).
 
   \code{pm = 0} is the \dQuote{S0} parameterization: based on the (M)
   representation of Zolotarev for an alpha stable distribution with
-  skewness beta. Unlike the Zolotarev (M) parameterization, gamma and
-  delta are straightforward scale and shift parameters. This
+  skewness beta.  Unlike the Zolotarev (M) parameterization, gamma and
+  delta are straightforward scale and shift parameters.  This
   representation is continuous in all 4 parameters.
 }
 \author{
@@ -55,15 +54,15 @@ rstable1(n, alpha, beta, gamma = 1, delta = 0, pm = 1)
   stable distributions.
 }
 \references{
-  Chambers J.M., Mallows, C.L. and Stuck, B.W. (1976),
+  Chambers, J. M., Mallows, C. L., and Stuck, B. W. (1976),
   \emph{A Method for Simulating Stable Random Variables},
-  J. Amer. Statist. Assoc. \bold{71}, 340--344.
+  J.  Amer.  Statist.  Assoc. \bold{71}, 340--344.
 
-  Nolan, J.P. (2010),
+  Nolan, J. P. (2010),
   \emph{Stable Distributions---Models for Heavy Tailed Data},
   Birkhaeuser.
 
-  Samoridnitsky G., Taqqu M. S. (1994),
+  Samoridnitsky, G. and Taqqu, M. S. (1994),
   \emph{Stable Non-Gaussian Random Processes, Stochastic Models
     with Infinite Variance},
   Chapman and Hall, New York.
