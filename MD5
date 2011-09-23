@@ -1,5 +1,5 @@
 dfa3f6ce43dcdab63a76cba542715f9a *ChangeLog
-e52443b0b9d3102581b89719d19e4b3f *DESCRIPTION
+45b46de0f6303456e73689057903f42a *DESCRIPTION
 8bb6796b845a066d1c31fa17023a1565 *LICENCE
 f9baa20dff00a59de6f30f89b7cf22a9 *NAMESPACE
 51d32d9ee0605c4a0f33295ee83ed86d *R/AllClass.R
@@ -29,16 +29,15 @@ a4ee3b3923f81d17f11a2b46296a7106 *inst/CITATION
 1f965bf1a2c57aa5575bbbf2cf701222 *inst/Rsource/GIG.R
 c9c8526a39ac2092245b3e307edac9e0 *inst/Rsource/estim-gof-fn.R
 5271ee4fd864cb61e5fe72a20f559b86 *inst/Rsource/fixup-sapply.R
-797a06ae3aed7dabfcb10fdb0bf5c8a9 *inst/Rsource/utils.R
+a86797a86d9aeede0f751c81899435fb *inst/Rsource/utils.R
 b192f0751450264e5f2694f0d9c1fc36 *inst/doc/Frank-Rmpfr.Rnw
-0cb0b94b7204d375b5cb935f5529cb39 *inst/doc/Frank-Rmpfr.pdf
-367c86a1ac10495ad14f618bff29b9d1 *inst/doc/Makefile
+b2c05e8e3c2aaf7337c7a70f6e103a26 *inst/doc/Frank-Rmpfr.pdf
 48669c4e55fe2392469dcf01641c5c06 *inst/doc/jss.bst
 84f542c2900480e1564a91e6f7607ae5 *inst/doc/jss.cls
 8da916534f7542d43b12a864add66ef2 *inst/doc/mlogL_mpfr_i686.rda
 1fd57abe6604b9b1a745840600c86565 *inst/doc/mlogL_mpfr_x86_64.rda
 ea6aca428b124feaa43a4382b21f5e2a *inst/doc/nacopula-pkg.Rnw
-be03026fab7b2bfb115b440ad8384306 *inst/doc/nacopula-pkg.pdf
+b07a93d697ec666c36e39470cc975ae9 *inst/doc/nacopula-pkg.pdf
 6bda139bfc1fb1db05f18c73f06937e3 *inst/doc/nacopula.bib
 9f1b12637cac3d48e68adb33a9595cde *man/Bernoulli.Rd
 b03d1279a4124194b78f17d75c84b9f7 *man/K.Rd
@@ -94,7 +93,7 @@ c2f841b5f3acdb9891462a2fa55d6eb8 *src/rF01Joe.c
 7f7d0a4f866d1f636ba268ba7d9146b8 *src/rLog.c
 14531744e65cfdfa77de8bc0844c79eb *src/rSibuya.c
 20ba774d9db06e58d4fe19221622828d *src/retstable.c
-7baf274455b8965118b9a0f00d6e5af3 *tests/Stirling-etc.R
+f9800ed5d300f526acaf782900bcc8aa *tests/Stirling-etc.R
 c359b2b4e2231fe60211d93810d7c132 *tests/copula-play.R
 202300f785a1de4ceba0557e4e194271 *tests/estim-ex.R
 357e686698d7b74d1ff7d0e1ec1bc0a8 *tests/gof-ex.R
