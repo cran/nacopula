@@ -19,7 +19,8 @@
 ## ---------   *and* do work even for (non-numeric) NULL argument
 ##		{now checked in "acopula" validityMethod -- see ./AllClass.R }
 
-### ==== Ali-Mikhail-Haq, see Nelsen (2007) p. 116, # 3 ========================
+
+### Ali-Mikhail-Haq, see Nelsen (2007) p. 116, # 3 #############################
 
 copAMH <-
     (function() { ## to get an environment where  C.  itself is accessible
@@ -74,9 +75,9 @@ copAMH <-
 		      if(log) log(d)+ (d-1)*log(x) + 2*(log(x-theta)-log(x^d-theta))
 		      else d* x^(d-1) * ((x-theta)/(x^d-theta))^2
                   },
-		  ## density
+		  ## density  AMH
 		  dacopula = function(u, theta, n.MC=0, log=FALSE,
-                  method = "negI-s-Eulerian", Li.log.arg=TRUE)
+				      method = "negI-s-Eulerian", Li.log.arg=TRUE)
               {
                   stopifnot(C.@paraConstr(theta))
                   if(!is.matrix(u)) u <- rbind(u)
@@ -182,7 +183,8 @@ copAMH <-
 	C.
     })()# {copAMH}
 
-### ==== Clayton, see Nelsen (2007) p. 116, #1 (slightly simpler form) =========
+
+### Clayton, see Nelsen (2007) p. 116, #1 (slightly simpler form) ##############
 
 copClayton <-
     (function() { ## to get an environment where  C.  itself is accessible
@@ -216,7 +218,7 @@ copClayton <-
                       if(log) log(d)-(1+1/theta)*log(1+(d-1)*(1-u^theta)) else
                       d*(1+(d-1)*(1-u^theta))^(-(1+1/theta))
                   },
-		  ## density
+		  ## density  Clayton
 		  dacopula = function(u, theta, n.MC=0, log=FALSE) {
 		      stopifnot(C.@paraConstr(theta))
 		      if(!is.matrix(u)) u <- rbind(u)
@@ -298,7 +300,8 @@ copClayton <-
 	C.
     })()# {copClayton}
 
-### ==== Frank, see Nelsen (2007) p. 116, # 5 ==================================
+
+### Frank, see Nelsen (2007) p. 116, # 5 #######################################
 
 ##' Frank object
 copFrank <-
@@ -371,9 +374,9 @@ copFrank <-
 		      r[S] <- dDiagFrank(u[S], th[S], d, log=log, method = "m1")
 		      r
 		  },
-		  ## density
+		  ## density  Frank
 		  dacopula = function(u, theta, n.MC=0, log=FALSE,
-                  method = "negI-s-Eulerian", Li.log.arg=TRUE)
+				      method = "negI-s-Eulerian", Li.log.arg=TRUE)
 	      {
 		  stopifnot(C.@paraConstr(theta))
 		  if(!is.matrix(u)) u <- rbind(u)
@@ -495,7 +498,8 @@ copFrank <-
 	C.
     })()# {copFrank}
 
-### ==== Gumbel, see Nelsen (2007) p. 116, # 4 =================================
+
+### Gumbel, see Nelsen (2007) p. 116, # 4 ######################################
 
 copGumbel <-
     (function() { ## to get an environment where  C.  itself is accessible
@@ -549,9 +553,9 @@ copGumbel <-
                       da <- d^alpha
                       if(log) (da-1)*log(u) + alpha*log(d) else da*u^(da-1)
                   },
-		  ## density
+		  ## density  Gumbel
 		  dacopula = function(u, theta, n.MC=0,
-                  method = eval(formals(polyG)$method), log=FALSE)
+				      method = eval(formals(polyG)$method), log=FALSE)
               {
                   stopifnot(C.@paraConstr(theta))
                   if(!is.matrix(u)) u <- rbind(u)
@@ -667,7 +671,7 @@ copGumbel <-
     })()# {copGumbel}
 
 
-### ==== Joe, see Nelsen (2007) p. 116, # 6 ====================================
+### Joe, see Nelsen (2007) p. 116, # 6 #########################################
 
 ##' Joe object
 copJoe <-
@@ -730,9 +734,9 @@ copJoe <-
 		      ## FIXME? for log-case: log(circRat(Ix, d)) = log1p(-x^d)-theta*log1p(-u))
 		      else d* x^(d-1) * circRat(Ix, d)^(1/theta-1)
 		  },
-		  ## density
+		  ## density  Joe
 		  dacopula = function(u, theta, n.MC=0,
-                  method = eval(formals(polyJ)$method), log = FALSE)
+				      method = eval(formals(polyJ)$method), log = FALSE)
               {
                   stopifnot(C.@paraConstr(theta))
                   if(!is.matrix(u)) u <- rbind(u)
@@ -744,7 +748,7 @@ copJoe <-
                   if(theta == 1) { res[n01] <- if(log) 0 else 1; return(res) } # independence
                   ## auxiliary results
                   u. <- u[n01,, drop=FALSE]
-                  l1_u <- rowSums(log1p(-u.)) # log(1-u)
+                  l1_u <- rowSums(log1p(-u.)) # sum_j log(1-u_j)
                   lh <- rowSums(log1p(-(1-u.)^theta)) # rowSums(log(1-(1-u)^theta)) = log(h)
                   ## main part
                   if(n.MC > 0) { # Monte Carlo
@@ -844,7 +848,8 @@ copJoe <-
 	C.
     })()# {copJoe}
 
-### ==== naming stuff ==========================================================
+
+### naming stuff ###############################################################
 
 cNms <- c("copAMH", "copClayton", "copFrank", "copGumbel", "copJoe")
 ## == dput(ls("package:nacopula",pat="^cop"))

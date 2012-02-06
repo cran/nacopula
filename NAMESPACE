@@ -17,9 +17,7 @@ useDynLib(nacopula, .registration=TRUE)
 
 ## Now  'Depend'  on  stats4 and bbmle :
 ##importFrom("stats4", mle)
-## importMethodsFrom("stats4", coef,confint, logLik, BIC, summary, plot, profile)
-
-## importFrom("bbmle", mle2)
+importMethodsFrom("stats4", coef,confint, logLik, AIC, BIC, summary, plot, profile)
 
 importFrom("gsl", debye_1)
 
@@ -37,14 +35,14 @@ export("copAMH", "copClayton", "copFrank", "copGumbel", "copJoe"
        ,"getAcop"
        ,"cacopula", "dnacopula", "pnacopula", "rnacopula" ,"rnchild"
        ## estimation
-       ## ,"coeffG", "polyG", "polyJ"
+       ## ,"coeffG", "polyG", "polyJ", "signFF"
        ,"initOpt"
        ,"beta.", "beta.hat", "pobs"
        ,"ebeta", "etau", "emde", "dDiag", "edmle", "emle", "enacopula"
        ## goodness-of-fit
        ,"K", "gtrafouni", "rtrafo", "htrafo", "gnacopula"
        ## misc
-       ,"onacopula", "onacopulaL"
+       ,"onacopula", "onacopulaL", "nesdepth"
        ,"polynEval"
        ,"printNacopula"
        ,"interval"

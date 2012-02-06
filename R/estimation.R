@@ -15,7 +15,8 @@
 
 #### Estimation for nested Archimedean copulas
 
-## ==== initial interval/value for optimization procedures =====================
+
+### initial interval/value for optimization procedures #########################
 
 ##' Compute an initial interval or value for optimization/estimation routines
 ##' (only a heuristic; if this fails, choose your own interval or value)
@@ -32,15 +33,15 @@
 ##' @param ... further arguments to cor() for method="tau.mean"
 ##' @return initial interval or value which can be used for optimization
 ##' @author Marius Hofert
-initOpt <- function(family, tau.range=NULL, interval=TRUE, u, method=c("tau.Gumbel",
-                                                              "tau.mean"), warn=TRUE, ...){
+initOpt <- function(family, tau.range=NULL, interval=TRUE, u,
+                    method=c("tau.Gumbel", "tau.mean"), warn=TRUE, ...)
+{
     cop <- getAcop(family)
     if(is.null(tau.range)){
-	eps <- 1e-8
         tau.range <- switch(cop@name, # limiting (attainable) taus that can be dealt with in estimation/optimization/root-finding
-                            "AMH" = { c(0, 1/3-eps) },
-                            "Clayton" = { c(eps, 0.95) },
-                            "Frank" = { c(eps, 0.94) }, # FIXME: beyond that, estimation.gof() fails for ebeta()!
+                            "AMH" = { c(0, 1/3-5e-5) }, # FIXME: closer to 1, emle's mle2 fails; note: typically, Std. Error still not available and thus profile() may fail => adjust by hand
+                            "Clayton" = { c(1e-8, 0.95) },
+                            "Frank" = { c(1e-8, 0.94) }, # FIXME: beyond that, estimation.gof() fails for ebeta()!
                             "Gumbel" = { c(0, 0.95) },
                             "Joe" = { c(0, 0.95) },
                             stop("unsupported family for initOpt"))
@@ -74,7 +75,8 @@ initOpt <- function(family, tau.range=NULL, interval=TRUE, u, method=c("tau.Gumb
     })
 }
 
-## ==== Blomqvist's beta =======================================================
+
+### Blomqvist's beta ###########################################################
 
 ##' Compute the sample version of Blomqvist's beta,
 ##' see, e.g., Schmid and Schmidt (2007) "Nonparametric inference on multivariate
@@ -139,7 +141,8 @@ ebeta <- function(u, cop, interval=initOpt(cop@copula@name), ...) {
               interval=interval, Sig=+1, check.conv=TRUE, ...)
 }
 
-## ==== Kendall's tau ==========================================================
+
+### Kendall's tau ##############################################################
 
 ##' Sample tau checker
 ##'
@@ -226,7 +229,8 @@ etau <- function(u, cop, method = c("tau.mean", "theta.mean"), warn=TRUE, ...){
        {stop("wrong method")})
 }
 
-## ==== Minimum distance estimation ============================================
+
+### Minimum distance estimation ################################################
 
 ##' Distances for minimum distance estimation
 ##'
@@ -270,7 +274,7 @@ emde.dist <- function(u, method = c("mde.chisq.CvM", "mde.chisq.KS", "mde.gamma.
                i <- 1:n
                max(Fvals[i]-(i-1)/n, i/n-Fvals[i])
            },
-           ## Note: The distances S_n^{(B)} and S_n^{(C)} turned out to be (far) 
+           ## Note: The distances S_n^{(B)} and S_n^{(C)} turned out to be (far)
            ##       too slow.
            stop("wrong distance method"))
 }
@@ -283,10 +287,10 @@ emde.dist <- function(u, method = c("mde.chisq.CvM", "mde.chisq.KS", "mde.gamma.
 ##' @param method distance methods available, see emde.dist
 ##' @param interval bivariate vector denoting the interval where optimization takes
 ##'        place
-##' @param include.K logical indicating whether the last component, K, is also 
+##' @param include.K logical indicating whether the last component, K, is also
 ##'        used or not
 ##' @param repara logical indicating whether the distance function is
-##'        reparameterized for the optimization 
+##'        reparameterized for the optimization
 ##' @param ... additional parameters for optimize
 ##' @return minimum distance estimator; return value of optimize
 ##' @author Marius Hofert
@@ -305,15 +309,38 @@ emde <- function(u, cop, method = c("mde.chisq.CvM", "mde.chisq.KS", "mde.gamma.
         emde.dist(u., method)
     }
     if(repara){
-	opt <- optimize(function(alpha) distance(1/alpha), interval=1/interval[2:1], ...)
-	opt$minimum <- 1/opt$minimum
+        ## reparameterization function
+        rfun <- function(x, inverse=FALSE){ # reparameterization
+            switch(cop@copula@name,
+                   "AMH"={
+                       x
+                   },
+                   "Clayton"={
+                       if(inverse) tan(x*pi/2) else atan(x)*2/pi
+                   },
+                   "Frank"={
+                       if(inverse) tan(x*pi/2) else atan(x)*2/pi
+                   },
+                   "Gumbel"={
+                       if(inverse) 1/(1-x) else 1-1/x
+                   },
+                   "Joe"={
+                       if(inverse) 1/(1-x) else 1-1/x
+                   },
+                   stop("emde: Reparameterization got unsupported family"))
+        }
+        ## optimize
+	opt <- optimize(function(alpha) distance(rfun(alpha, inverse=TRUE)),
+                        interval=rfun(interval), ...)
+	opt$minimum <- rfun(opt$minimum, inverse=TRUE)
 	opt
     }else{
-        optimize(distance, interval=interval, ...)	
+        optimize(distance, interval=interval, ...)
     }
 }
 
-## ==== Diagonal maximum likelihood estimation =================================
+
+### Diagonal maximum likelihood estimation #####################################
 
 ##' Density of the diagonal of a nested Archimedean copula
 ##'
@@ -393,7 +420,8 @@ edmle <- function(u, cop, interval=initOpt(cop@copula@name), warn=TRUE, ...)
     }
 }
 
-## ==== (Simulated) maximum likelihood estimation ==============================
+
+### (Simulated) maximum likelihood estimation ##################################
 
 ##' (Simulated) maximum likelihood estimation for nested Archimedean copulas
 ##'
@@ -429,12 +457,17 @@ edmle <- function(u, cop, interval=initOpt(cop@copula@name), warn=TRUE, ...)
 ##' @param cop outer_nacopula to be estimated
 ##' @param n.MC if > 0 SMLE is applied with sample size equal to n.MC; otherwise,
 ##'        MLE is applied
-##' @param interval bivariate vector denoting the interval where optimization takes
-##'        place
+##' @param optimizer optimizer used (if optimizer=NULL (or NA), then mle (instead
+##'        of mle2) is used with the provided method)
+##' @param method optim's method to be used (when optimizer=NULL or "optim" and
+##'        in these cases method is a required argument)
+##' @param interval bivariate vector denoting the interval where optimization
+##'        takes place
+##' @param start list containing the initial value(s) (unfortunately required by mle2)
 ##' @param ... additional parameters for optimize
 ##' @return an "mle2" object with the (simulated) maximum likelihood estimator.
 ##' @author Martin Maechler and Marius Hofert
-##' note: this is the *slower* version which also allows for profiling
+##' Note: this is the *slower* version which also allows for profiling
 emle <- function(u, cop, n.MC=0, optimizer="optimize", method,
 		 interval=initOpt(cop@copula@name),
                  ##vvv awkward to be needed, but it is - by mle2():
@@ -476,7 +509,8 @@ emle <- function(u, cop, n.MC=0, optimizer="optimize", method,
 	mle(minuslogl = nLL, method = method, start=start, ...)
 }
 
-## ==== Estimation wrapper =====================================================
+
+### Estimation wrapper #########################################################
 
 ##' Computes the pseudo-observations for the given data matrix
 ##'

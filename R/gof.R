@@ -15,7 +15,8 @@
 
 #### Goodness-of-fit testing for nested Archimedean copulas
 
-## ==== transformations to univariate quantities ===============================
+
+### transformations to univariate quantities ###################################
 
 ##' Kendall distribution function
 ##'
@@ -123,7 +124,8 @@ gtrafouni <- function(u, method = c("chisq", "gamma", "Remillard", "Genest"))
  	   stop("gtrafouni: unsupported method ", method))
 }
 
-## ==== multivariate transformations ===========================================
+
+### multivariate transformations ###############################################
 
 ##' Transforms vectors of random variates following the given (nested) Archimedean
 ##' copula (with specified parameters) to U[0,1]^d vectors of random variates
@@ -132,12 +134,14 @@ gtrafouni <- function(u, method = c("chisq", "gamma", "Remillard", "Genest"))
 ##' @title Rosenblatt transformation for a (nested) Archimedean copula
 ##' @param u data matrix
 ##' @param cop an outer_nacopula
+##' @param m # order up to which Rosenblatt's transform is computed, i.e.,
+##'        C(u_j | u_1,...,u_{j-1}), j=2,..,m
 ##' @param n.MC parameter n.MC for evaluating the derivatives via Monte Carlo
 ##' @return matrix of supposedly U[0,1]^d realizations
 ##' @author Marius Hofert
-rtrafo <- function(u, cop, n.MC=0)
+rtrafo <- function(u, cop, m=d, n.MC=0)
 {
-    stopifnot(is(cop, "outer_nacopula"))
+    stopifnot(is(cop, "outer_nacopula"), 2 <= m, m <= d)
     if(length(cop@childCops))
         stop("currently, only Archimedean copulas are provided")
     if(!is.matrix(u)) u <- rbind(u)
@@ -172,7 +176,7 @@ rtrafo <- function(u, cop, n.MC=0)
             exp(logD[1:n]-logD[(n+1):(2*n)])
         }
     }
-    cbind(u[,1],sapply(2:d, C.j))
+    cbind(u[,1],sapply(2:m, C.j))
 }
 
 ##' Transforms vectors of random variates following the given (nested) Archimedean
@@ -209,7 +213,8 @@ htrafo <- function(u, cop, include.K=TRUE, n.MC=0)
     u.
 }
 
-## ==== Gof wrapper ============================================================
+
+### Gof wrapper ################################################################
 
 ##' Conducts a goodness-of-fit test for the given H0 copula cop based on the
 ##' (copula) data u
@@ -253,7 +258,7 @@ apply the transformations yourself,  see ?gnacopula.")
     if(estimation.method != "mle"){
 	if(estimation.method == "smle") warning("'estimation.method = \"smle\"' may be time-consuming!") else
 	warning("Consistency for the chosen estimation.method is not clear. Additionally, numerical problems might appear.")
-    } 
+    }
 
     ## build multivariate transformation
     trafo <- match.arg(trafo)

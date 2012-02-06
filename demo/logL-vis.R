@@ -214,17 +214,25 @@ set.seed(11) ## these seeds give no problem: 101, 41, 21
 U. <- rnacopula(n,cop)
 ## forget the true theta:
 cop@copula <- setTheta(cop@copula, NA)
-emle(U., cop)## --> now fine: theta = 18.033 ,  Log-lik = 314.01
-
+system.time(f.ML <- emle(U., cop)); f.ML ## --> fine: theta = 18.033, Log-lik = 314.01
 ## with MC :
-emle(U., cop, n.MC = 1e4)## takes a long time ... but then things are fine:
-## theta = 17.797
+system.time(f.mlMC <- emle(U., cop, n.MC = 1e4))## takes a long time
+## (7.5 sec on nb-mm3 2010)
+stopifnot(
+	  all.equal(unname(coef(f.ML)), 18.03331, tol= 1e-6)
+	  ,
+	  all.equal(f.ML@min, -314.0143, tol=1e-6)
+	  ,
+	  ## Simulate MLE (= SMLE) is "extra" random,  hmm...
+	  all.equal(unname(coef(f.mlMC)), 17.8, tol= 0.01)
+	  ##		   64-bit ubuntu: 17.817523
+	  ##		 ? 64-bit Mac:	  17.741
+	 )
 
 cop@copula <- setTheta(cop@copula, theta)# for the plot:
 r. <- curveLogL(cop, U., c(1, 200))
 ## now looks fine (well, not really ..) -- with finite values much longer..
 ## but still has -Inf: at end:
 tail(as.data.frame(r.), 15)
-if(FALSE) ## not yet :
-    stopifnot( is.finite( min(r.$y) ) )
+stopifnot( is.finite( r.$y ) )
 

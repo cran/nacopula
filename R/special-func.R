@@ -26,6 +26,12 @@ polynEval <- function(coef, x) .Call(polyn_eval, coef, x)
 ##' @param cutoff  log(2) is optimal, see  Maechler (201x) .....
 ##' @return f(a) == log(1 - exp(-a)) == log1p(-exp(-a)) == log(-expm1(-a))
 ##' @author Martin Maechler, May 2002 .. Aug. 2011
+##' @references _TODO_
+##'  see <<log1mexpm>> in ../inst/doc/Frank-Rmpfr.Rnw  which has
+##' {log(-expm1(-theta))} ... underflows for
+##' large theta, and hence should be replaced by the generally accurate
+##' %% as shown by   Maechler (2011) --- FIXME: finally right that small paper!!
+##' %%               =========================  ~/R/MM/NUMERICS/log1-exp.R
 log1mexpm <- function(a, cutoff = log(2)) ## << log(2) is optimal >>
 {
     if(has.na <- any(ina <- is.na(a))) {
@@ -44,17 +50,27 @@ log1mexpm <- function(a, cutoff = log(2)) ## << log(2) is optimal >>
 ##' The sign of choose(alpha*j,d)*(-1)^(d-j) vectorized in j
 ##'
 ##' @title The sign of choose(alpha*j,d)*(-1)^(d-j)
-##' @param alpha alpha in (0,1)
-##' @param j integer vector
-##' @param d integer
+##' @param alpha alpha (scalar) in (0,1]
+##' @param j integer vector in {0,..,d}
+##' @param d integer (scalar) >= 0
 ##' @return sign(choose(alpha*j,d)*(-1)^(d-j))
 ##' @author Marius Hofert
-sign.binom <- function(alpha, j, d) {
-    stopifnot(0 < alpha, alpha < 1) # for alpha == 1 this function is not correct
+##' Note: If alpha=1, then
+##'       sign( choose(alpha*j, d)*(-1)^(d-j) ) == (-1)^(d-j) if j > d and
+##'       sign( choose(alpha*j, d)*(-1)^(d-j) ) == 0 if j = 0
+signFF <- function(alpha, j, d) {
+    stopifnot(0 < alpha, alpha <= 1, d >= 0, 0 <= j)
     res <- numeric(length(j))
-    x <- alpha*j
-    nint <- x != floor(x) # TRUE iff not integer
-    res[nint] <- (-1)^(j[nint]-ceiling(x[nint]))
+    if(alpha == 1) {
+	res[j == d] <- 1
+	res[j > d] <- (-1)^(d-j)
+    } else {
+	res[j > d] <- NA # the formula below does not hold {TODO: find correct sign}
+        ## we do not need them in dsumSibuya() and other places...
+	x <- alpha*j
+	ind <- x != floor(x)
+	res[ind] <- (-1)^(j[ind]-ceiling(x[ind]))
+    }
     res
 }
 
@@ -62,11 +78,11 @@ sign.binom <- function(alpha, j, d) {
 ##' vectors log(x_1),..,log(x_n) (each of dimension d)
 ##'
 ##' @title Properly compute the logarithm of a sum
-##' @param lx (n x d)-matrix containing the row vectors log(x_1),..,log(x_n)
+##' @param lx (n,d)-matrix containing the row vectors log(x_1),..,log(x_n)
 ##'        each of dimension d
 ##' @param l.off the offset to substract and re-add; ideally in the order of
 ##'        the maximum of each column
-##' @return log(x_1 + .. + x_n) computed via
+##' @return log(x_1 + .. + x_n) [i.e., of dimension d] computed via
 ##'         log(sum(x)) = log(sum(exp(log(x))))
 ##'         = log(exp(log(x_max))*sum(exp(log(x)-log(x_max))))
 ##'         = log(x_max) + log(sum(exp(log(x)-log(x_max)))))
@@ -88,7 +104,7 @@ lsum <- function(lx, l.off = apply(lx, 2, max)) {
 ##' @param signs corresponding matrix of signs sign(x_1), .., sign(x_n)
 ##' @param l.off the offset to substract and re-add; ideally in the order of max(.)
 ##' @param strict logical indicating if it should stop on some negative sums
-##' @return log(x_1 + .. + x_n) computed via
+##' @return log(x_1 + .. + x_n) [i.e., of dimension d] computed via
 ##'         log(sum(x)) = log(sum(sign(|x|)*exp(log(|x|))))
 ##'         = log(exp(log(x0))*sum(signs*exp(log(|x|)-log(x0))))
 ##'         = log(x0) + log(sum(signs* exp(log(|x|)-log(x0))))
@@ -299,6 +315,8 @@ Eulerian.all <- function(n)
     stopifnot(length(n) == 1, n >= 0)
     if(!n) return(1)
     if(get("Eul.full.n", .nacopEnv) < n) {
+        ## FIXME: do the assign() only when the lapply() below does *not* fail
+        ##  on.exit( ... ) ?
 	assign("Eul.full.n", n, envir = .nacopEnv)
 	unlist(lapply(0:(n-1L), Eulerian, n=n))# which fills "Eul.tab"
     }

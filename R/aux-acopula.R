@@ -18,7 +18,7 @@ paste0 <- function(...) paste(..., sep="")
 #### Functions and Methods for "acopula" objects
 #### class definition in ./AllClass.R
 
-### ==== Ali-Mikhail-Haq == "AMH" ==============================================
+### Ali-Mikhail-Haq == "AMH" ###################################################
 
 ##' @title Ali-Mikhail-Haq ("AMH")'s  tau(theta)
 ##' @param th
@@ -29,7 +29,7 @@ tauAMH <- function(th) {
     if(length(th) == 0) return(numeric(0)) # to work with NULL
     r <- th
     na <- is.na(th)
-    lrg <- (th > 0.01) & !na
+    lrg <- (th > 0.01) & !na ## for "large" theta (<=> theta >= 0.01), use standard formula
     f. <- function(t) {
 	## 1 - 2*((1-t)*(1-t)*log1p(-t) + t) / (3*t*t)
 	r <- t
@@ -39,6 +39,12 @@ tauAMH <- function(th) {
 	r
     }
     r[lrg] <- f.(th[lrg])
+    ## Otherwise use "smart" Taylor polynomials: for given order, *drop* the last two..
+    ## with the following coefficients:
+    ##_ x <- polynomial()
+    ##_ MASS::fractions(as.vector(mkAMHtau.0series(12,TRUE) * 9/(2*x)))
+    ##  1  1/4  1/10  1/20  1/35  1/56  1/84  1/120  1/165  1/220
+
     if(any(!lrg & !na)) {
 	l1 <- !lrg & !na & (ll1 <- th > 2e-4) ## --> k = 7
 	r[l1] <- (function(x) 2*x/9*(1+ x*(1/4 + x/10*(1 + x*(1/2 + x/3.5)))))(th[l1])
@@ -53,7 +59,7 @@ tauAMH <- function(th) {
 }
 
 
-### ==== Clayton ===============================================================
+### Clayton ####################################################################
 
 ##' Note: this is mainly to show that this function can be very well
 ##' approximated much more simply by just using m <- round(V0).
@@ -82,7 +88,7 @@ m.opt.retst <- function(V0) {
     m
 }
 
-### ==== fast rejection for fixed m, R version ====
+### fast rejection for fixed m, R version
 
 ##' Sample a random variate St ~ \tilde{S}(alpha, 1, (cos(alpha*pi/2)
 ##' *V_0)^{1/alpha}, V_0*I_{alpha = 1}, I_{alpha != 1}; 1) with
@@ -119,7 +125,7 @@ retstablerej <- function(m,V0,alpha) {
 	       ))
 }
 
-### ==== fast rejection, R version ====
+### fast rejection, R version
 
 ##' Sample a vector of random variates St ~ \tilde{S}(alpha, 1, (cos(alpha*pi/2)
 ##' *V_0)^{1/alpha}, V_0*I_{alpha = 1}, h*I_{alpha != 1}; 1) with
@@ -145,7 +151,7 @@ retstableR <- function(alpha, V0, h=1) {
     mapply(retstablerej, m=m, V0=V0, alpha=alpha)
 }
 
-### ==== state-of-the-art: fast rejection + Luc's algorithm, C version ====
+### state-of-the-art: fast rejection + Luc's algorithm, C version
 
 ##' Sample random variates St ~ \tilde{S}(alpha, 1, (cos(alpha*pi/2)
 ##' *V_0)^{1/alpha}, V_0*I_{alpha = 1}, h*I_{alpha != 1}; 1) with
@@ -193,9 +199,9 @@ if(FALSE)
 retstable <- retstableC # retstable is by default retstableC
 
 
-### ==== Frank =================================================================
+### Frank ######################################################################
 
-### ==== sampling a logarithmic distribution, R version ====
+### sampling a logarithmic distribution, R version
 
 ##' Random number generator for a Log(p) distribution with the algorithm "LK" of
 ##' Kemp (1981), R version.
@@ -228,7 +234,7 @@ rlogR <- function(n, p, Ip = 1-p) {
     vec
 }
 
-### ==== state-of-the art: sampling a logarithmic distribution, C version ====
+### state-of-the art: sampling a logarithmic distribution, C version
 
 ##' Random number generator for a Log(p) distribution with the algorithm "LK" of
 ##' Kemp (1981), C version.
@@ -245,7 +251,7 @@ rlog <- function(n, p, Ip = 1-p) {
     .Call(rLog_vec_c, n, p, Ip)
 }
 
-### ==== state-of-the art: sampling F01Frank, C version ====
+### state-of-the art: sampling F01Frank, C version
 
 ##' Generate a vector of variates V01 ~ F01 with Laplace-Stieltjes transform
 ##' ((1-(1-exp(-t)*(1-e^(-theta1)))^alpha)/(1-e^(-theta0)))^V0.
@@ -264,7 +270,7 @@ rF01Frank <- function(V0, theta0, theta1, rej, approx) {
     .Call(rF01Frank_vec_c, V0, theta0, theta1, rej, approx)
 }
 
-### ==== wrapper for inner distribution F for Frank ====
+### wrapper for inner distribution F for Frank
 
 ##' Generate a vector of variates V ~ F with Laplace-Stieltjes transform
 ##' (1-(1-exp(-t)*(1-e^(-theta1)))^alpha)/(1-e^(-theta0)).
@@ -281,6 +287,7 @@ rF01Frank <- function(V0, theta0, theta1, rej, approx) {
 rFFrank <- function(n, theta0, theta1, rej)
     rF01Frank(rep(1,n),theta0,theta1,rej,1) # approx = 1 (dummy)
 
+## see documentation for more information
 dDiagFrank <- function(u, theta, d, log=FALSE,
 		       method = c("auto", paste("poly",1:4,sep=""),
                        "polyFull",  "m1", "MH", "MMH"))
@@ -292,8 +299,8 @@ dDiagFrank <- function(u, theta, d, log=FALSE,
     method <- match.arg(method)
     if(method == "auto")
 	method <- {
-	    if(d <= 3) "poly1" else
-	    if(d <= 6) paste("poly", d-2, sep="")
+	    if(d <= 3) "poly1" else # d in {1,2,3}
+	    if(d <= 6) paste("poly", d-2, sep="") # d in {4,5,6}
 	    else ## this is not really good: but (u*th) is *vector*
 		"polyFull"
     }
@@ -301,10 +308,10 @@ dDiagFrank <- function(u, theta, d, log=FALSE,
 	e.ut <- exp(-ut)
 	ep <- (e.ut - exp(ut-theta))/Ie # "FIXME": maybe improve, testing  u > 1/2
 	d1 <- d-1
-	D <- d + d1*ep
+	D <- d + d1*ep # D = d + (d-1) * (exp(-theta*u)-exp(theta*u-theta))
         if(d > 2) { # <==> d1 = d-1 >= 2
-            f <- 1 + ep
-            delt <- e.ut * f
+            f <- 1 + ep # 1+exp(-theta*u)-exp(theta*u-theta)
+            delt <- e.ut * f # exp(-theta*u) * (1+exp(-theta*u)-exp(theta*u-theta))
 	    D <- D + f* delt *
 		switch(method,
 		       "poly1" = d1*(d-2L)/2,
@@ -330,8 +337,8 @@ dDiagFrank <- function(u, theta, d, log=FALSE,
 	       if(log) log(d) -ut -log(D) else d*exp(-ut) / D
 	   },
 	   "MH" = { # Marius Hofert
-	       h <- -expm1(-theta) # =	1 - exp(-theta)
-	       x <- Ie/h
+	       h <- -expm1(-theta) # = 1-exp(-theta)
+	       x <- Ie/h # = (1-exp(-theta*u)) / (1-exp(-theta))
 	       if(log) log(d)+(d-1)*log(x)+log((1-h*x)/(1-h*x^d)) else
 	       d*x^(d-1)*(1-h*x)/(1-h*x^d)
 	   },
@@ -346,11 +353,9 @@ dDiagFrank <- function(u, theta, d, log=FALSE,
 }
 
 
+### Gumbel #####################################################################
 
-
-### ==== Gumbel ================================================================
-
-### ==== compute the coefficients for polyG ====
+### compute the coefficients for polyG
 
 ##' Compute the coefficients a_{dk}(theta) involved in the generator derivatives
 ##' and the copula density of a Gumbel copula
@@ -358,36 +363,51 @@ dDiagFrank <- function(u, theta, d, log=FALSE,
 ##' @title Coefficients of the polynomial involved in the generator derivatives
 ##'        and density for Gumbel
 ##' @param d number of coefficients, d >= 1
-##' @param alpha parameter (1/theta) in (0,1]
+##' @param alpha parameter (1/theta) in (0,1];
+##'     you maye use  mpfr(alph, precBits = <n_prec>)  for higher precision "Rmpfr*" methods
 ##' @param method a character string, one of
 ##'    "sort":          compute coefficients via exp(log()) pulling out the maximum, and sort
 ##'    "horner":        uses polynEval()
 ##'    "direct":        brute force approach
-##'    "dsumSibuya":    uses dsumSibuya() - FIXME? allow to specify *which* dsumS.. method
+##'    "dsSib.<FOO>":   uses dsumSibuya(..., method= "<FOO>")
 ##' @param log boolean which determines if the logarithm is returned
 ##' @param verbose logical for method == sort
-##' @return a_{dk}(theta) = (-1)^{d-k}\sum_{j=k}^d alpha^j * s(d,j) * S(j,k)
-##' @author Marius Hofert und Martin Maechler
-##' note: this function is known to cause numerical problems, e.g., for d=100, alpha=0.8
-coeffG <- function(d, alpha, method = c("sort", "horner", "direct", "dsumSibuya"),
+##' @return a_k(theta, d) = (-1)^{d-k}\sum_{j=k}^d alpha^j * s(d,j) * S(j,k), k in
+##'         {1,..,d}
+##' @author Marius Hofert and Martin Maechler
+##' Note: - This function is known to cause numerical problems, e.g., for d=100,
+##'         alpha=0.8
+##'       - sign(s(n,k)) = (-1)^{n-k}
+coeffG <- function(d, alpha, method = c("sort", "horner", "direct", "dsumSibuya",
+			     paste("dsSib", eval(formals(dsumSibuya)$method), sep=".")),
 		   log = FALSE, verbose = FALSE)
 {
     stopifnot(is.numeric(d), length(d) == 1, d >= 1, length(alpha) == 1,
-              0 < alpha, alpha <= 1)
-    a <- numeric(d) # for the a_{dk}(theta)'s
+	      0 < alpha, alpha <= 1)
+    a <- numeric(d) # for the a_k(theta, d)'s
     method <- match.arg(method)
-    switch(method,
+    if(method == "dsumSibuya") {
+        message("method 'dsumSibuya' is deprecated.\n  ",
+        	"use method = 'dsSib.log' instead")
+        method <- "dsSib.log"
+    }
+    Meth <-
+	if(grepl("^dsSib", method)) {
+	    meth.dsSib <- sub("^dsSib\\.(.*)", "\\1", method)
+	    "dsSib"
+	} else method
+    switch(Meth,
 	   "sort" = {
 	       ls <- log(abs(Stirling1.all(d))) # log(|s(d, i)|), i=1:d
 	       lS <- lapply(1:d, function(n) log(Stirling2.all(n)))
-	       ##-> lS[[n]][i] contains log(S(n,i)), i = 1,...,n
+	       ##-> lS[[n]][i] contains log(S(n,i)), i = 1,..,n
                wrong.sign <- integer()
-	       for(k in 1:d) { # deal with a_{dk}(theta)
+	       for(k in 1:d) { # deal with a_k(theta, d)
 		   j <- k:d
-		   ## compute b_j's, j = k,..,d
+		   ## compute b_j = log(alpha^j*|s(d,j)|*S(j,k)), j = k,..,d
 		   b <- j * log(alpha) + ls[j] +
 		       unlist(lapply(j, function(i) lS[[i]][k]))
-		   b.max <- max(b) # max{b_j}
+		   b.max <- max(b) # max_{j=k,..,d} b_j
 		   exponents <- b - b.max # exponents
 		   ## compute critical sum (known to be positive)
 		   exps <- exp(exponents) # (d-k+1)-many
@@ -406,26 +426,25 @@ coeffG <- function(d, alpha, method = c("sort", "horner", "direct", "dsumSibuya"
 		   attr(a, "wrong.signs") <- wrong.sign
 	       a
 	   },
-	   "dsumSibuya" = {
+	   "dsSib" = {
 	       ## coefficients via dsumSibuya
-	       ## a_{dk}(theta) = d!/k! * dsumSibuya(d, k, alpha)
+	       ## a_k(theta,d) = d!/k! * dsumSibuya(d, k, alpha)
 	       k <- 1:d
 	       ck <- ## c_k := d!/k!
 		   if(log) c(0,cumsum(log(d:2)))[d:1]
 		   else c(1,cumprod(d:2))[d:1]
-	       p <- dsumSibuya(d, k, alpha, log=log)
+	       p <- dsumSibuya(d, k, alpha, method = meth.dsSib, log=log)
+               ##   ----------              -------------------
 	       if(log) p + ck else p * ck
 	   },
 	   "horner" = {
 	       s.abs <- abs(Stirling1.all(d))
-	       S <- lapply(1:d, Stirling2.all)
-               ## S[[n]][i] contains S(n,i), i = 1,...,n
 	       k <- 1:d
+	       S <- lapply(k, Stirling2.all)## S[[n]][i] contains S(n,i), i = 1,...,n
 	       pol <- vapply(k, function(k.) {
 		   j <- 0:(d-k.)
 		   ## compute coefficients (c_k = |s(d,j+k)|*S(j+k,k))
-		   c.j <- s.abs[j+k.] *
-		       unlist(lapply(j, function(i) S[[i+k.]][k.]))
+		   c.j <- s.abs[j+k.] * vapply(j, function(i) S[[i+k.]][k.], 1.)
 		   polynEval(c.j, -alpha)
 	       }, NA_real_)
 
@@ -434,11 +453,11 @@ coeffG <- function(d, alpha, method = c("sort", "horner", "direct", "dsumSibuya"
 	   "direct" = {
 	       s <- Stirling1.all(d) # s(d,1), ..., s(d,d)
 	       k <- 1:d
-	       S <- lapply(k, Stirling2.all) # S[[k]][n] contains S(k,n), n = 1,...,k
+	       S <- lapply(k, Stirling2.all)## S[[n]][i] contains S(n,i), i = 1,...,n
 	       vapply(k, function(k.) {
 		   j <- k.:d
 		   ## extract a column of Stirling2 numbers:
-		   S. <- unlist(lapply(j, function(i) S[[i]][k.]))
+		   S. <- vapply(j, function(i) S[[i]][k.], 1.)
 		   sm <- sum(alpha^j * s[j]*S.)
 		   if(log) log(abs(sm)) else (-1)^(d-k.)*sm
 	       }, NA_real_)
@@ -447,7 +466,7 @@ coeffG <- function(d, alpha, method = c("sort", "horner", "direct", "dsumSibuya"
 	   ) ## switch()
 } ## coeffG()
 
-### ==== compute the polynomial for Gumbel ====
+### compute the polynomial for Gumbel
 
 ##' Compute the polynomial involved in the generator derivatives and the
 ##' copula density of a Gumbel copula
@@ -456,7 +475,7 @@ coeffG <- function(d, alpha, method = c("sort", "horner", "direct", "dsumSibuya"
 ##' @param lx = log(x); where x: evaluation point (vector);
 ##'        e.g., for copGumbel@dacopula, lx = alpha*log(rowSums(psiInv(u)))
 ##'        where u = (u_1,..,u_d) is the evaluation point of the density of Joe's copula)
-##' @param alpha parameter (1/theta) in (0,1]
+##' @param alpha parameter in (0,1]   alpha := 1/theta = 1 - tau
 ##' @param d number of summands, >= 1
 ##' @param method a string, one of
 ##'   "default"         uses a combination of the other methods
@@ -464,10 +483,7 @@ coeffG <- function(d, alpha, method = c("sort", "horner", "direct", "dsumSibuya"
 ##'   "pois"            uses ppois with pulling out max
 ##'   "stirling"        uses the representation via Stirling numbers and once horner
 ##'   "stirling.horner" uses the representation via Stirling numbers and twice horner
-##'   "sort"            compute the coefficients via exp(log()), pulling out the max and sort
-##'   "horner"          uses polynEval
-##'   "direct"          brute force approach
-##'   "dsumSibuya"            uses dsumSibuya()
+##'    .....            all the method from coeffG(), see there
 ##' @param log boolean which determines if the logarithm is returned
 ##' @return \sum_{k=1}^d  a_{dk}(\theta)  x ^ k
 ##'       = \sum_{k=1}^d  a_{dk} *     exp(lx*k)
@@ -475,51 +491,54 @@ coeffG <- function(d, alpha, method = c("sort", "horner", "direct", "dsumSibuya"
 ##'       = (-1)^{d-k}\sum_{j=k}^d \theta^{-j} s(d,j) S(j,k)
 ##'       = (d!/k!)\sum_{l=1}^k (-1)^{d-l} \binom{k}{l}\binom{\alpha l}{d}
 ##' @author Marius Hofert
-polyG <- function(lx, alpha, d, method=c("default", "pois", "pois.direct",
-                                "stirling", "stirling.horner", "sort", "horner",
-                                "direct", "dsumSibuya"), log=FALSE)
+polyG <- function(lx, alpha, d, method=
+                  c("default", "pois", "pois.direct", "stirling", "stirling.horner",
+                    coeffG.methods),
+                  log=FALSE)
 {
+    stopifnot(length(alpha)==1, 0 < alpha, alpha <= 1,
+              d == as.integer(d), d >= 1)
     k <- 1:d
-    stopifnot(length(alpha)==1, 0 < alpha, alpha <= 1)
-    method <- match.arg(method)
-    switch(method,
+    ## with a fixed match.arg(): method <- match.arg(method) ## -- R 2.15. ??
+    method <- match.arg(method, choices = eval(formals()[["method"]]))
+    Meth <- if(method %in% coeffG.methods) "coeffG" else method
+    switch(Meth,
 	   "default" =
        {
-	   method <- if(d <= 100)
-               if(alpha <= 0.54) "stirling" else if(alpha <= 0.77)
-                   "pois.direct" else "dsumSibuya"
-           else "pois" # slower but more stable, e.g., for d=150
-	   polyG(lx=lx, alpha=alpha, d=d, method=method, log=log)
+           ## default method: the following is clearly too simple
+           ## ------- should even use different methods for different  x := exp(lx)
+
+	   Recall(lx, alpha=alpha, d=d,
+                  method = if(d <= 100) {
+                      if(alpha <= 0.54) "stirling"
+                      else if(alpha <= 0.77) "pois.direct"
+                      else "dsSib.log"
+                  } else "pois", # slower but more stable, e.g., for d=150
+                  log=log)
        },
            "pois" =
        {
-           ## determine signs of the falling factorials
-           signs <- (-1)^k* (2*(floor(alpha*k) %% 2) - 1)
-
            ## build list of b's
            n <- length(lx)
-           x <- exp(lx) ## e^lx = x
+           x <- exp(lx)                                   # e^lx = x
            lppois <- outer(d-k, x, FUN=ppois, log.p=TRUE) # a (d x n)-matrix; log(ppois(d-k, x))
-           llx <- k %*% t(lx) # also a (d x n)-matrix; k*lx
-           labsPoch <- vapply(k, function(j) sum(log(abs(alpha*j-(k-1L)))), NA_real_) # log|(alpha*k)_d|
-           lfac <- lfactorial(k)
+           llx <- k %*% t(lx)           # also a (d x n)-matrix; k*lx
+           labsPoch <- vapply(k, function(j) sum(log(abs(alpha*j-(k-1L)))), NA_real_) # log|(alpha*j)_d|, j=1,..,d
+           lfac <- lfactorial(k)        # log(j!), j=1,..,d
            ## build matrix of exponents
            lxabs <- llx + lppois + rep(labsPoch - lfac, n) + rep(x, each = d)
-	   res <- lssum(lxabs, signs, strict=FALSE)
+           res <- lssum(lxabs, signFF(alpha, k, d), strict=FALSE)
            if(log) res else exp(res)
        },
            "pois.direct" =
        {
-           ## determine signs of (-1)^(d-k)*(alpha*k)_d
-           signs <- (-1)^k * (2*(floor(alpha*k) %% 2) - 1)
-
            ## build coefficients
            xfree <- lchoose(alpha*k,d) + lfactorial(d) - lfactorial(k)
            x <- exp(lx)
            lppois <- outer(d-k, x, FUN=ppois, log.p=TRUE) # (length(x),d)-matrix
            klx <- lx %*% t(k)
            exponents <- exp(t(x+klx)+lppois+xfree) # (d,length(x))-matrix
-           res <- as.vector(signs %*% exponents)
+           res <- as.vector(signFF(alpha, k, d) %*% exponents)
            if(log) log(res) else res
        },
            "stirling" =
@@ -546,20 +565,20 @@ polyG <- function(lx, alpha, d, method=c("default", "pois", "pois.direct",
 	   S <- lapply(k, Stirling2.all) # S[[l]][n] contains S(l,n), n = 1,...,l
 	   len <- length(x)
            poly <- matrix(unlist(lapply(k, function(k.) polynEval(S[[k.]],-x))), nrow=len) # (len,d)-matrix
-           res <- (-1)^(d-1)*alpha*x*unlist(lapply(1:len, function(x) polynEval(s*poly[x,], alpha)))
+           res <- (-1)^(d-1)*alpha*x* vapply(1:len, function(i) polynEval(s*poly[i,], alpha), 1.)
            if(log) log(res) else res
            ## the following code was *not* faster
            ## poly <- t(sapply(k, function(k.) polynEval(S[[k.]],-x))) # (d,len(x))-matrix
            ## coeff <- if(length(x)==1) t(s*poly) else s*poly
            ## res <- (-1)^(d-1)*alpha*x*apply(coeff, 2, polynEval, x=alpha)
        },
-           "sort" =, "horner" =, "direct" =, "dsumSibuya" =
+           "coeffG" = ## <<< all the different 'coeffG' methods --------------------
        {
-           ## note: these methods are all know to show numerical deficiencies
+           ## note: these methods are all known to show numerical deficiencies
            if(d > 220) stop("d > 220 not yet supported") # would need Stirling2.all(d, log=TRUE)
            ## compute the log of the coefficients:
-           a.dk <- coeffG(d, alpha, method=method)
-           l.a.dk <- log(a.dk) # note: theoretically, a.dk > 0 but due to numerical issues, this might not always be the case
+	   l.a.dk <- coeffG(d, alpha, method=method, log = TRUE)
+	   ##	     ~~~~~~			     ~~~~~~~~~~
            ## evaluate the sum
            ## for this, create a matrix B with (k,i)-th entry
            ## B[k,i] = log(a_{dk}(theta)) + k * lx[i],
@@ -576,9 +595,9 @@ polyG <- function(lx, alpha, d, method=c("default", "pois", "pois.direct",
 }
 
 
-### ==== Joe ===================================================================
+### Joe ########################################################################
 
-### ==== sampling a Sibuya(alpha) distribution, R version ====
+### sampling a Sibuya(alpha) distribution, R version
 
 ##' Sample V from a Sibuya(alpha) distribution with cdf F(n) = 1-1/(n*B(n,1-alpha)),
 ##' n in IN, with Laplace-Stieltjes transform 1-(1-exp(-t))^alpha via the
@@ -612,7 +631,7 @@ rSibuyaR <- function(n, alpha) {
     V
 }
 
-### ==== state-of-the-art: sampling a Sibuya(alpha) distribution, C version ====
+### state-of-the-art: sampling a Sibuya(alpha) distribution, C version
 
 ##' Sample V from a Sibuya(alpha) distribution with cdf F(n) = 1-1/(n*B(n,1-alpha)),
 ##' n in IN, with Laplace-Stieltjes transform 1-(1-exp(-t))^alpha via the
@@ -661,7 +680,7 @@ pSibuya <- function(x, alpha, lower.tail=TRUE, log.p=FALSE)
     }
 }
 
-### ==== state-of-the art: sampling F01Joe, C version ====
+### state-of-the art: sampling F01Joe, C version
 
 ##' Generate a vector of variates V01 ~ F01 with Laplace-Stieltjes transform
 ##' ((1-(1-exp(-t))^alpha))^V0. Bridge to R. Used, e.g., to draw several variates
@@ -677,7 +696,7 @@ rF01Joe <- function(V0, alpha, approx) {
     .Call(rF01Joe_vec_c, V0, alpha, approx)
 }
 
-### ==== wrapper for inner distribution F for Joe ====
+### wrapper for inner distribution F for Joe
 
 ##' Generate a vector of variates V ~ F with Laplace-Stieltjes transform
 ##' 1-(1-exp(-t))^alpha.
@@ -689,46 +708,50 @@ rF01Joe <- function(V0, alpha, approx) {
 ##' @author Marius Hofert
 rFJoe <- function(n, alpha) rSibuya(n, alpha)
 
-### ==== polynomial evaluation for Joe ====
+### polynomial evaluation for Joe
 
 ##' Inner probability mass function for a nested Joe copula, i.e. a Sibuya sum
+##' also used in coeffG() -> polyG() for Gumbel's copula
 ##'
 ##' @title Inner probability mass function for a nested Joe copula
-##' @param x vector (or number) of natural numbers >= n
+##' @param x vector (or number) of natural numbers
 ##' @param n vector (or number) of natural numbers
 ##' @param alpha parameter in (0,1]
 ##' @param method method applied
 ##'        log:      proper log computation based on lssum
 ##'        direct:   brute-force evaluation of the sum and its log
-##'        Rmpfr:    multi-precision
+##'        Rmpfr, RmpfrM:    multi-precision; the latter *return* multi-prec.
 ##'        diff:     via forward differences
 ##'        exp.log:  similar to method = "log", but without *proper/intelligent* log
 ##' @param log boolean which determines if the logarithm is returned
-##' @return p_{xn} = \sum_{j=1}^n choose(n,j)*choose(alpha*j,x)*(-1)^(x-j)
+##' @return p_{x,n} = \sum_{j=1}^n choose(n,j)*choose(alpha*j,x)*(-1)^(x-j)
 ##'         which is a probability mass function in x on IN with generating function
 ##'         g(z) = (1-(1-z)^alpha)^n
 ##' @author Marius Hofert and Martin Maechler
-##' note: - p_{xn} = 0 for x < n; p_{nn} = alpha^n
+##' note: - p_{x,n} = 0 for x < n;  p_{n,n} = alpha^n
 ##'       - numerically challenging, e.g., dsumSibuya(100, 96, 0.01) < 0 for all methods
 dsumSibuya <- function(x, n, alpha,
-                       method=c("log", "direct", "Rmpfr", "diff", "exp.log"), log=FALSE)
+		       method= c("log", "direct", "Rmpfr", "Rmpfr0", "RmpfrM", "diff", "exp.log"),
+		       log=FALSE)
 {
-    stopifnot(x == round(x), n == round(n), n >= 1, length(alpha) == 1,
-              0 < alpha, alpha <= 1)
-    if((l.x <- length(x)) * (l.n <- length(n)) == 0)
+    stopifnot(x == round(x), n == round(n), n >= 0, length(alpha) == 1,
+	      0 < alpha, alpha <= 1)
+    if((l.x <- length(x)) == 0 || (l.n <- length(n)) == 0)
 	return(numeric())
+    ## "FIXME": from coeffG(), always have  {x = d, n = 1:d} -- can be faster *not* recycling
     if((len <- l.x) != l.n) { ## do recycle to common length
 	len <- max(l.x, l.n)
-	if(l.x < len)
+	if(l.x < len) {
+	    x. <- x
 	    x <- rep(x, length.out = len)
+	}
 	else ## if(l.n < len)
 	    n <- rep(n, length.out = len)
     }
     if(alpha == 1)
 	return(x == n)
-    ii <- seq_len(len)
     method <- if(missing(method) && is(alpha, "mpfr"))
-        "Rmpfr" else match.arg(method)
+	"Rmpfr" else match.arg(method)
     switch(method,
 	   "log" =
        {
@@ -736,11 +759,7 @@ dsumSibuya <- function(x, n, alpha,
 
 	   ## determine the matrix of signs of choose(alpha*j,x)*(-1)^(x-j),
 	   ## j in {1,..,m} -- which notably do *not* depend on x !
-	   m <- max(n)
-	   signs <- unlist(lapply(1:m, function(j) {
-	       z <- alpha*j
-	       if(z == floor(z)) 0 else (-1)^(j-ceiling(z))
-	   }))
+	   signs <- signFF(alpha, seq_len(max(n)), x)
 	   ## for one pair of x and n:
 	   f.one <- function(x,n) {
 	       if(x < n) return(-Inf)	# = log(0)
@@ -749,8 +768,8 @@ dsumSibuya <- function(x, n, alpha,
 	       ## *NON*-strict -- otherwise need try() :
 	       lssum(as.matrix(lxabs), signs[j], strict=FALSE)
 	   }
-	   S. <- sapply(ii, function(i) f.one(x[i], n[i]))
-	   if(log) S. else exp(S.)
+	   S <- mapply(f.one, x, n, USE.NAMES = FALSE)
+	   if(log) S else exp(S)
        },
 	   "direct" =
        {
@@ -760,32 +779,78 @@ dsumSibuya <- function(x, n, alpha,
 	       j <- seq_len(n)
 	       sum(choose(n,j)*choose(alpha*j,x)*(-1)^(x-j))
 	   }
-	   S <- sapply(ii, function(i) f.one(x[i], n[i]))
+	   S <- mapply(f.one, x, n, USE.NAMES = FALSE)
 	   if(log) log(S) else S
        },
-	   "Rmpfr" =
+	   "Rmpfr" =,
+	   "Rmpfr0" =,
+	   "RmpfrM" =
        {
-           ## as "direct" but using high-precision arithmetic, where
-           ## the precision should be set via alpha = mpfr(*, precBits= .)
+	   ## as "direct" but using high-precision arithmetic, where
+	   ## the precision should be set via alpha = mpfr(*, precBits= .)
 	   stopifnot(require(Rmpfr))
-
-           ## FIXME: for one n and many x -- should be made *much* faster!
-
-           if(!is(alpha, "mpfr"))
-               alpha <- mpfr(alpha, precB = max(100, min(x, 10000)))
-	   mpfr.0 <- mpfr(0, precBits = getPrec(alpha))
-	   f.one <- function(x,n) {
-	       if(x < n) return(mpfr.0)
-	       j <- seq_len(n)
-	       sum(chooseMpfr.all(n)*chooseMpfr(alpha*j,x)*(-1)^(x-j))
+	   if(!is(alpha, "mpfr"))
+	       alpha <- mpfr(alpha, precBits = max(100, min(x, 10000)))
+	   pr. <- getPrec(alpha)
+	   mpfr.0 <- mpfr(0, precBits = pr.)
+	   mayRecall <- (method != "Rmpfr0")
+	   ## FIXME
+	   if(FALSE && l.x == 1 && l.n == x. && all(n == seq_len(x.))) { ## Special case -- from coeffG()
+	       message("fast special case ..") ## <- just for now
+	       ## change notation (for now)
+	       j <- n  # == 1:d
+	       n <- x. # == d
+	       c.n <- chooseMpfr.all(n)
+	       ca.j <- chooseMpfr(alpha*j,n)*(-1)^(n-j)
+	       f.sp <- function(j) {
+		   j. <- seq_len(j)
+		   sum(c.n[j.] * ca.j[j.])
+	       }
+	       stop("fast special case -- is still wrong !")
+	       S <- new("mpfr", unlist(lapply(j, f.sp)))
+	   } else { ## usual case
+	       f.one <- function(x,n) {
+		   if(x < n) return(mpfr.0)
+		   j <- seq_len(n)
+		   ## now do this in parts {to analyze}:
+		   ## sum(chooseMpfr.all(n)*chooseMpfr(alpha*j,x)*(-1)^(x-j))
+		   c.n <- chooseMpfr.all(n)
+		   ca.j <- chooseMpfr(alpha*j,x) * (-1)^(x-j)
+		   trms <- c.n * ca.j
+		   S <- sum(trms) # <-- sum of *huge* (partly alternating) terms getting almost 0
+		   if(mayRecall) {
+		       recall <- (S <= 0)
+		       if(recall) { ## complete loss of precision -- recall with higher precision
+			   newPrec <- round(1.5 * pr.)
+			   MSG <- " |--> S < 0"
+		       } else {		# S > 0 :
+			   bitLoss <- round(as.numeric(log2(max(abs(trms)) / S )), 1)
+			   recall <- (pr. - bitLoss < 20) ## less than 20 bits precision left
+			   if(recall) {
+			       newPrec <- pr. + 30
+			       MSG <- paste("-> bit loss =", bitLoss)
+			   }
+		       }
+		       if(recall) {
+			   message(sprintf("dsumSibuya(%d, %d, alpha= %g, method='%s'): %s ==> recalled with new prec. %d",
+					   x, n, as.numeric(alpha), method, MSG, newPrec))
+			   dsumSibuya(x,n, alpha = roundMpfr(alpha, newPrec),
+				      method="RmpfrM", log=FALSE)
+		       } else S
+		   } else S
+	       }
+	       S <- new("mpfr", mapply(f.one, x, n, USE.NAMES=FALSE))
 	   }
-	   S <- new("mpfr", unlist(lapply(ii, function(i)
-                                          f.one(x[i], n[i]))))
-	   as.numeric(if(log) log(S) else S)
+	   if(method == "RmpfrM")
+	       if(log) log(S) else S
+	   else
+	       as.numeric(if(log) log(S) else S)
        },
-           "diff" =
+	   "diff" =
        {
-           diff(choose(n:0*alpha, x), differences=n) * (-1)^x
+	   S. <- mapply(function(x,n) diff(choose(n:0*alpha, x), differences=n) * (-1)^x,
+			x, n, USE.NAMES = FALSE)
+	   if(log) log(S.) else S.
        },
 	   "exp.log" =
        {
@@ -798,20 +863,20 @@ dsumSibuya <- function(x, n, alpha,
 	       ## determine the signs of choose(j*alpha,x) for each component of j
 	       to.subtract <- 0:(x-1)
 	       sig.choose <-
-		   unlist(lapply(j, function(l)
-				 prod(sign(l*alpha-to.subtract)) ))
+		   vapply(j, function(l) prod(sign(l*alpha-to.subtract)),
+			  1., USE.NAMES=FALSE)
 	       signs <- signs*sig.choose
 	       binom.coeffs <- exp(lchoose(n,j) + lchoose(j*alpha,x))
 	       sum(signs*binom.coeffs)
 	   }
-	   S <- sapply(ii, function(i) f.one(x[i], n[i]))
+	   S <- mapply(f.one, x, n, USE.NAMES = FALSE)
 	   if(log) log(S) else S
        },
 	   ## otherwise
 	   stop(sprintf("unsupported method '%s' in dsumSibuya", method)))
 }
 
-### ==== polynomial evaluation for Joe ====
+### polynomial evaluation for Joe
 
 ##' Compute the polynomial involved in the generator derivatives and the
 ##' copula density of a Joe copula
@@ -912,7 +977,7 @@ circRat <- function(e, d)
 }
 
 
-### ==== other NON-numerics ====================================================
+### Misc #######################################################################
 
 ##' Conditional copula function C(u[,d]|u[,1],...,u[,d-1])
 ##'
@@ -1012,6 +1077,9 @@ psiDabsMC <- function(t, family, theta, degree=1, n.MC,
            },
 	   stop(sprintf("unsupported method '%s' in psiDabsMC", method)))
 }
+
+
+### Non-numerics ###############################################################
 
 ##' Function for setting the parameter in an acopula
 ##'
@@ -1154,16 +1222,6 @@ getAcop <- function(family, check=TRUE) {
     else stop("'family' must be an \"acopula\" object or family name")
 }
 
-if(getRversion() < "2.12") ## take the version in R >= 2.12.0 (also export!)
-    adjustcolor <- function(col, alpha.f = 1, red.f = 1, green.f = 1,
-                            blue.f = 1, offset = c(0,0,0,0),
-                            transform = diag(c(red.f, green.f, blue.f, alpha.f)))
-{
-    stopifnot(length(offset) %% 4 == 0,
-              !is.null(d <- dim(transform)), d == c(4,4))
-    x <- col2rgb(col, alpha=TRUE)/255
-    x[] <- pmax(0, pmin(1,
-                        transform %*% x +
-                        matrix(offset, nrow=4, ncol=ncol(x))))
-    rgb(x[1,], x[2,], x[3,], x[4,])
-}
+
+coeffG.methods <- eval(formals(coeffG)$method)# - namespace hidden
+## --> accesses formals(dsumSibuya) .. hence at end
