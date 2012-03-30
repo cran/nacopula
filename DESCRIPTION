@@ -1,8 +1,7 @@
 Package: nacopula
-Version: 0.8-0
-Date: 2012-02-06
-LastChanged: $LastChangedRevision: 640 $; $LastChangedDate: 2012-02-06
-        11:25:41 +0100 (Mon, 06. Feb 2012) $
+Version: 0.8-1
+NOTE: nacopula is now *part* of the package copula.  Use that instead!
+NOTI: ----------------------------------------------------------------
 Title: Nested Archimedean Copulas
 Description: An R package for working with nested Archimedean copulas.
         Specifically, providing procedures for computing function
@@ -14,13 +13,10 @@ Description: An R package for working with nested Archimedean copulas.
         polylogarithm, Stirling and Eulerian numbers.
 Author: Marius Hofert <marius.hofert@math.ethz.ch> and Martin Maechler
 Maintainer: Martin Maechler <maechler@stat.math.ethz.ch>
-Depends: R (>= 2.12.0), methods, stats4
-Imports: gsl, ADGofTest, stabledist
-Suggests: lattice, MASS, sfsmisc, Rmpfr, bbmle
+Depends: copula (>= 0.99-0)
+Dependz: -----------------
+Imports: copula
 License: GPL (>= 2)
-URL: http://nacopula.r-forge.r-project.org/
-LazyData: yes
-Encoding: UTF-8
-Packaged: 2012-02-06 13:03:03 UTC; maechler
+Packaged: 2012-03-30 09:50:07 UTC; maechler
 Repository: CRAN
-Date/Publication: 2012-02-06 13:38:05
+Date/Publication: 2012-03-30 15:10:30
